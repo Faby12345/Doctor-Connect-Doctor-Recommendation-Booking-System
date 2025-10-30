@@ -73,6 +73,7 @@ body {
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   box-shadow: 0 4px 24px rgba(21,94,239,0.05);
   transition: all 0.4s ease;
+  z-index: 500;
 }
 .filters:hover {
   background: rgba(255,255,255,0.75);

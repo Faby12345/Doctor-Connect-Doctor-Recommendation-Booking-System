@@ -1,11 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import DoctorCard from "./components/DoctorCard";
-
 import useDebounce from "./hooks/useDebounce";
 import "./doctors.css";
 import { useNavigate } from "react-router-dom";
-
-// same shape as our card
+import { useAuth } from "./AuthContext";
 
 export type DoctorRow = {
   id: string;
@@ -15,13 +13,26 @@ export type DoctorRow = {
   priceMinCents: number;
   priceMaxCents: number;
   verified: boolean;
-  ratingAvg: number; // 0..5
+  ratingAvg: number;
   ratingCount: number;
-  //nextSlots?: string[];
 };
+
+type AppointmentRequestPayload = {
+  patientId: string;
+  doctorId: string;
+  date: string; // "2025-10-30"
+  time: string; // "14:30"
+  status: string; // "Pending"
+};
+
 export default function DoctorsPage() {
   const navigate = useNavigate();
-  // ---------- UI state (controlled inputs) ----------
+
+  // This is the logged-in patient ID.
+  // In production you'd get this from auth context or JWT.
+  const { user } = useAuth();
+
+  // ---------- filter state ----------
   const [specialty, setSpecialty] = useState("");
   const [city, setCity] = useState("");
   const [minPrice, setMinPrice] = useState<number | "">("");
@@ -31,7 +42,6 @@ export default function DoctorsPage() {
     "relevance" | "rating" | "priceAsc" | "priceDesc"
   >("relevance");
 
-  // debounce inputs for smoother UX on large lists
   const debSpecialty = useDebounce(specialty, 200);
   const debCity = useDebounce(city, 200);
   const debMin = useDebounce(minPrice, 200);
@@ -39,13 +49,18 @@ export default function DoctorsPage() {
   const debVerified = useDebounce(onlyVerified, 100);
   const debSort = useDebounce(sort, 100);
 
-  // data state
+  // ---------- API data ----------
   const [rows, setRows] = useState<DoctorRow[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // load local JSON once
-  const BASE_API = "http://localhost:8080/api/doctor";
+  // booking status banner
+  const [bookingState, setBookingState] = useState<
+    null | "loading" | "success" | "error"
+  >(null);
+  const [bookingError, setBookingError] = useState<string | null>(null);
+
+  // load doctors list
   useEffect(() => {
     (async () => {
       const ctrl = new AbortController();
@@ -55,18 +70,18 @@ export default function DoctorsPage() {
           signal: ctrl.signal,
           credentials: "include",
         });
-        if (!res.ok) throw new Error(`Failed to load mock data: ${res.status}`);
+        if (!res.ok) throw new Error(`Failed to load data: ${res.status}`);
         const data = (await res.json()) as DoctorRow[];
         setRows(data);
       } catch (e: any) {
-        setError(e?.message ?? "Failed to load mock data");
+        setError(e?.message ?? "Failed to load data");
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  // filter + sort entirely on client
+  // client-side filtering/sorting (same logic you already had)
   const visible = useMemo(() => {
     if (!rows) return null;
     let list = rows;
@@ -95,7 +110,6 @@ export default function DoctorsPage() {
         copy.sort((a, b) => b.priceMinCents - a.priceMinCents);
         break;
       default:
-        // relevance – keep original order from JSON for now
         break;
     }
 
@@ -104,11 +118,59 @@ export default function DoctorsPage() {
 
   const count = visible?.length ?? 0;
 
+  async function handleBook(doctorId: string) {
+    if (!user) {
+      console.error("user is null");
+      navigate("/");
+      return;
+    }
+    // Step 1: ask the user when they want the appointment
+    const pickedDate = window.prompt("Choose date (YYYY-MM-DD):", "2025-10-30");
+    if (!pickedDate) return;
+
+    const pickedTime = window.prompt("Choose time (HH:MM, 24h):", "14:30");
+    if (!pickedTime) return;
+
+    try {
+      setBookingState("loading");
+      setBookingError(null);
+
+      // Step 2: build the body we're going to send to backend
+      const payload: AppointmentRequestPayload = {
+        patientId: user.id,
+        doctorId: doctorId,
+        date: pickedDate,
+        time: pickedTime,
+        status: "Pending", // waiting for doctor approval
+      };
+
+      // Step 3: POST to backend
+      const res = await fetch("http://localhost:8080/api/appointments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        setBookingState("error");
+        setBookingError(`Request failed (${res.status})`);
+        return;
+      }
+
+      setBookingState("success");
+    } catch (err: any) {
+      setBookingState("error");
+      setBookingError(err?.message ?? "Unknown error");
+    }
+  }
+
   return (
     <div className="pageWrap">
       <h2 className="pageTitle">Find a Doctor</h2>
 
-      {/* Filters row */}
       <div className="filters" role="region" aria-label="filters">
         <div>
           <label>Specialty</label>
@@ -175,16 +237,25 @@ export default function DoctorsPage() {
         </label>
       </div>
 
-      {/* Toolbar */}
+      {/* Booking status / feedback to the user */}
       <div className="toolbar" aria-live="polite">
         <span>{loading ? "Loading…" : `${count} doctors`}</span>
         <span className="spacer" />
-        {/* room for future chips like Active filters */}
+        {bookingState === "loading" && (
+          <span className="muted">Sending request…</span>
+        )}
+        {bookingState === "success" && (
+          <span className="successMsg">
+            Request sent. Waiting for doctor ✅
+          </span>
+        )}
+        {bookingState === "error" && (
+          <span className="errorMsg">{bookingError}</span>
+        )}
       </div>
 
-      {/* Results */}
+      {/* Results list */}
       {error && <div className="errorState">Error: {error}</div>}
-
       {loading ? (
         <div className="cardsGrid" aria-hidden>
           {Array.from({ length: 6 }).map((_, i) => (
@@ -205,6 +276,7 @@ export default function DoctorsPage() {
               key={r.id}
               d={r}
               onView={(id) => navigate(`/doctor/${id}`)}
+              onBook={(id) => handleBook(r.id)}
             />
           ))}
         </div>

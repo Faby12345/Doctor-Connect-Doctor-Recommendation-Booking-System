@@ -27,13 +27,17 @@
    =========================== */
 .doctor-profile {
   color: var(--lp-text);
-  background:
-    radial-gradient(1200px 600px at 80% -10%, #cfe1ff 0%, transparent 60%),
+  background: radial-gradient(
+      1200px 600px at 80% -10%,
+      #cfe1ff 0%,
+      transparent 60%
+    ),
     radial-gradient(1200px 800px at -10% 110%, #d9e7ff 0%, transparent 60%),
     var(--lp-bg);
   min-height: 100dvh;
   padding: clamp(18px, 3.5vw, 28px);
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue";
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    "Helvetica Neue";
 }
 
 /* ===========================
@@ -213,6 +217,16 @@
   color: var(--lp-muted);
   margin-top: 4px;
 }
+.bio {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--lp-primary-700);
+}
+.bio_header {
+  font-size: 12px;
+  color: var(--lp-muted);
+  margin-top: 4px;
+}
 
 /* ===========================
    Availability
@@ -251,8 +265,7 @@
    =========================== */
 .skeleton {
   border-radius: 8px;
-  background:
-    linear-gradient(
+  background: linear-gradient(
       100deg,
       rgba(45, 108, 223, 0.06) 30%,
       rgba(45, 108, 223, 0.15) 45%,
@@ -279,6 +292,7 @@
     background-position: -200% 0;
   }
 }
+/* 
 :root {
   --bg: #0b0d12;
   --card: #121826;
@@ -331,7 +345,30 @@
 .availability__time { color: var(--muted); }
 
 /* skeletons */
-.skeleton { border-radius:8px; background: linear-gradient(100deg, rgba(255,255,255,.06) 30%, rgba(255,255,255,.15) 45%, rgba(255,255,255,.06) 60%) #0e1320; background-size:200% 100%; animation: shine 1.4s ease-in-out infinite; }
-.skeleton--title { width:60%; height:20px; margin-bottom:10px; }
-.skeleton--text { width:100%; height:14px; margin:8px 0; }
-@keyframes shine { to { background-position: -200% 0; } }
+.skeleton {
+  border-radius: 8px;
+  background: linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0.06) 30%,
+      rgba(255, 255, 255, 0.15) 45%,
+      rgba(255, 255, 255, 0.06) 60%
+    )
+    #0e1320;
+  background-size: 200% 100%;
+  animation: shine 1.4s ease-in-out infinite;
+}
+.skeleton--title {
+  width: 60%;
+  height: 20px;
+  margin-bottom: 10px;
+}
+.skeleton--text {
+  width: 100%;
+  height: 14px;
+  margin: 8px 0;
+}
+@keyframes shine {
+  to {
+    background-position: -200% 0;
+  }
+}

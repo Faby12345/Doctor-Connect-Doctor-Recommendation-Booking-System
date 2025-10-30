@@ -39,7 +39,7 @@ type FetchState =
 
 //const ME_ENDPOINT = import.meta.env.VITE_ME_ENDPOINT || "http://localhost:8080/api/doctors/me";
 
-const ME_ENDPOINT = "/data/doctorProfile.json";
+//const ME_ENDPOINT = "/data/doctorProfile.json";
 function dayName(idx: number) {
   return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][idx] ?? `Day ${idx}`;
 }
@@ -50,6 +50,7 @@ interface DoctorDTO {
   id: string;
   fullName: string;
   speciality: string;
+  bio: string;
   city: string;
   priceMinCents: number;
   priceMaxCents: number;
@@ -180,6 +181,10 @@ export default function DoctorProfile() {
               {formatPrice(doctor.priceMaxCents)}
             </div>
             <div className="stat__label">Price range</div>
+          </div>
+          <div className="bio">
+            <h2 className="bio_header">Bio</h2>
+            {doctor.bio}
           </div>
         </div>
       </section>
