@@ -1,0 +1,11 @@
+/* src/index.css */
+:root {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  background-color: #f9f9f9;
+  color: #111;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}

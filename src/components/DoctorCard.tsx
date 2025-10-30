@@ -10,7 +10,6 @@ export type Doctor = {
   verified: boolean;
   ratingAvg: number; // 0..5
   ratingCount: number;
-  nextSlots?: string[];
 };
 
 function formatPrice(cents: number) {
@@ -20,9 +19,11 @@ function formatPrice(cents: number) {
 export default function DoctorCard({
   d,
   onView,
+  onBook,
 }: {
   d: Doctor;
   onView?: (id: string) => void;
+  onBook?: (id: string) => void; // doc id
 }) {
   return (
     <div
@@ -55,22 +56,13 @@ export default function DoctorCard({
         </span>
       </div>
 
-      {d.nextSlots && d.nextSlots.length > 0 && (
-        <div className="row" aria-label="next slots">
-          <span className="muted">Next slots:</span>
-          {d.nextSlots.slice(0, 3).map((iso) => (
-            <span key={iso} className="slotPill">
-              {new Date(iso).toLocaleString()}
-            </span>
-          ))}
-        </div>
-      )}
-
       <div className="btnRow">
         <button className="btn btnGhost" onClick={() => onView?.(d.id)}>
           View Profile
         </button>
-        <button className="btn btnPrimary">Book</button>
+        <button className="btn btnPrimary" onClick={() => onBook?.(d.id)}>
+          Book
+        </button>
       </div>
     </div>
   );
