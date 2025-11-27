@@ -1,6 +1,10 @@
 package app.doctor_connect_backend.appointments;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,18 +30,10 @@ public class AppointmentsService {
         return appointmentsRepo.findAllByPatientId(patientId).stream().toList();
     }
 
-    public Boolean CancelAppointment(@NonNull UUID id) {
+    public Boolean SetAppointmentStatus(@NonNull UUID id, AppointmentsStatus status) {
         Appointments app = appointmentsRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        app.setStatus("Canceled");
-        appointmentsRepo.save(app);
-        return true;
-    }
-
-    public Boolean AcceptAppointment(@NonNull UUID id) {
-        Appointments app = appointmentsRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        app.setStatus("Confirmed");
+        app.setStatus(status.toString());
         appointmentsRepo.save(app);
         return true;
     }
