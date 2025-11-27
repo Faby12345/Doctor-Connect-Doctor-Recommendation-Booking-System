@@ -44,6 +44,37 @@ public class AppointmentsController {
         Appointments saved = appointmentsRepo.save(app);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<Boolean> cancelAppointment(@PathVariable UUID id) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.CANCELLED));
+    }
+    @PutMapping("/{id}/confirm")
+    public ResponseEntity<Boolean> acceptAppointment(@PathVariable UUID id) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.CONFIRMED));
+    }
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<Boolean> rejectAppointment(@PathVariable UUID id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.REJECTED));
+    }
 
     @GetMapping(value = "doctor/{id}")
     public ResponseEntity<List<Appointments>> getAppForDoc(@PathVariable UUID id) {
