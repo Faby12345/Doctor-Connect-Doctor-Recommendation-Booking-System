@@ -87,4 +87,13 @@ public class AppointmentsController {
         }
     }
 
+    @GetMapping(value = "patient/{id}")
+    public ResponseEntity<List<Appointments>> getAppForPatient(@PathVariable UUID id) {
+        try {
+            var res = appointmentsService.GetAllAppointmentsPatient(id);
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

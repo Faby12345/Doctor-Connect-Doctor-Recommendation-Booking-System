@@ -6,7 +6,8 @@ import LoginPage from "./login";
 import RegisterPage from "./register";
 import MainPage from "./MainPage";
 import DoctorsPage from "./DoctorsPage";
-import DoctorProfile from "./DoctorProfile/DoctorProfilePage";
+import DoctorProfileRoute from "./DoctorProfile/DoctorProfileRoute";
+//import DoctorProfile_outside from "./DoctorProfile/DoctorProfilePage_outside"; // if still used elsewhere
 import Dock from "./components/Dock";
 import { useAuth } from "./AuthContext";
 import {
@@ -16,30 +17,12 @@ import {
   VscSettingsGear,
 } from "react-icons/vsc";
 
-// If you want stricter typing for roles, you can import AuthUser and use it here.
-import type { AuthUser } from "./AuthContext";
-import DoctorProfile_outside from "./DoctorProfile/DoctorProfilePage_outside";
-import DoctorProfileRoute from "./DoctorProfile/DoctorProfileRoute";
-
-/** Guard a route by role */
-function RoleRoute({
-  user,
-  allow,
-  children,
-}: {
-  user: AuthUser; // ✅ align with context type
-  allow: Array<AuthUser["role"]>; // ✅ align with context type
-  children: React.ReactElement;
-}) {
-  if (!allow.includes(user.role))
-    return <div style={{ padding: 24 }}>Forbidden</div>;
-  return children;
-}
+import MePage from "./UserProfile/MePage";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 export default function App() {
-  const { user, setUser, loading } = useAuth(); // ✅ get setUser (+ loading) from context
+  const { user, setUser, loading } = useAuth(); // ✅ from context
   const navigate = useNavigate();
 
   const items = [
@@ -70,90 +53,82 @@ export default function App() {
       method: "POST",
       credentials: "include",
     });
-    setUser(null); // ✅ update via context
+    setUser(null);
     navigate("/");
   }
 
-  // Optional: show a boot screen while context loads the session
+  // Boot screen while AuthContext loads /api/auth/me
   if (loading) return <div style={{ padding: 24 }}>Loading…</div>;
 
   return (
-    <>
-      {/* Show Dock only when logged in */}
-      {user && (
-        <Dock
-          items={items}
-          panelHeight={75}
-          baseItemSize={70}
-          magnification={90}
-        />
-      )}
-
-      <Routes>
-        {/* Public routes (when not logged in) */}
-        {!user ? (
-          <>
-            <Route
-              path="/register"
-              element={
-                <RegisterPage
-                  onRegister={async (vals) => {
-                    const res = await fetch(`${API_URL}/api/auth/register`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      credentials: "include",
-                      body: JSON.stringify(vals),
-                    });
-                    if (!res.ok) throw new Error(await res.text());
-                    // Optionally fetch /me or set returned user if API returns it
-                    // const me = await (await fetch(`${API_URL}/api/auth/me`, { credentials: "include" })).json();
-                    // setUser(me);
-                    navigate("/");
-                  }}
-                  onNavigateToLogin={() => navigate("/")}
-                />
-              }
+      <>
+        {/* Show Dock only when logged in */}
+        {user && (
+            <Dock
+                items={items}
+                panelHeight={75}
+                baseItemSize={70}
+                magnification={90}
             />
-            <Route
-              path="/"
-              element={
-                <LoginPage
-                  onNavigateToRegister={() => navigate("/register")}
-                  onLoginSuccess={(u) => {
-                    setUser(u); // ✅ update via context
-                    if (u.role === "DOCTOR") navigate("/doctors");
-                    else navigate("/");
-                  }}
-                />
-              }
-            />
-          </>
-        ) : (
-          <>
-            {/* Private/main area */}
-            <Route
-              path="/"
-              element={<MainPage user={user} onLogout={handleLogout} />}
-            />
-            <Route path="/doctors" element={<DoctorsPage />} />
-            <Route path="/doctor/:id" element={<DoctorProfileRoute />} />
-            <Route
-              path="/me"
-              element={
-                <RoleRoute user={user} allow={["DOCTOR"]}>
-                  <DoctorProfile />
-                </RoleRoute>
-              }
-            />
-          </>
         )}
 
-        {/* Fallback */}
-        <Route
-          path="*"
-          element={<div style={{ padding: 24 }}>Not found</div>}
-        />
-      </Routes>
-    </>
+        <Routes>
+          {/* Public routes (when not logged in) */}
+          {!user ? (
+              <>
+                <Route
+                    path="/register"
+                    element={
+                      <RegisterPage
+                          onRegister={async (vals) => {
+                            const res = await fetch(`${API_URL}/api/auth/register`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              credentials: "include",
+                              body: JSON.stringify(vals),
+                            });
+                            if (!res.ok) throw new Error(await res.text());
+                            navigate("/");
+                          }}
+                          onNavigateToLogin={() => navigate("/")}
+                      />
+                    }
+                />
+                <Route
+                    path="/"
+                    element={
+                      <LoginPage
+                          onNavigateToRegister={() => navigate("/register")}
+                          onLoginSuccess={(u) => {
+                            setUser(u);
+                            if (u.role === "DOCTOR") navigate("/doctors");
+                            else navigate("/");
+                          }}
+                      />
+                    }
+                />
+              </>
+          ) : (
+              <>
+                {/* Private/main area when logged in */}
+                <Route
+                    path="/"
+                    element={<MainPage user={user} onLogout={handleLogout} />}
+                />
+                <Route path="/doctors" element={<DoctorsPage />} />
+                <Route path="/doctor/:id" element={<DoctorProfileRoute />} />
+
+                {/* ✅ /me now handled by MePage (doctor/patient/admin) */}
+                <Route path="/me" element={<MePage />} />
+              </>
+          )}
+
+          {/* Fallback */}
+          <Route
+              path="*"
+              element={<div style={{ padding: 24 }}>Not found</div>}
+          />
+        </Routes>
+      </>
   );
 }
