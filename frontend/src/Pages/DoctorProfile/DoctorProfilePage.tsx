@@ -126,6 +126,7 @@ export default function DoctorProfile() {
   // prefer normalized "specialty" if present
   const specialty = (doctor as any).specialty ?? doctor.speciality;
 
+
   return (
     <div className="doctor-profile">
       {/* Header */}
@@ -184,6 +185,7 @@ export default function DoctorProfile() {
       </section>
 
       <AppointmentsDoctorView />
+
 
     </div>
   );
