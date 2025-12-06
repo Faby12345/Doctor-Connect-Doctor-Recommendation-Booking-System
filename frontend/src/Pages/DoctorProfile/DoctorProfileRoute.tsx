@@ -1,7 +1,5 @@
-// DoctorProfileRoute.tsx
-import React from "react";
+
 import { useParams } from "react-router-dom";
-import DoctorProfilePage_outside from "./DoctorProfilePage_outside"; // <-- the PROP version (method B)
 import DoctorProfile_outside from "./DoctorProfilePage_outside";
 
 export default function DoctorProfileRoute() {

@@ -1,8 +1,10 @@
 package app.doctor_connect_backend.appointments;
 
-import jakarta.servlet.http.HttpServletRequest;
+import app.doctor_connect_backend.user.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,19 +15,26 @@ import java.util.UUID;
 public class AppointmentsController {
     private final AppointmentsService appointmentsService;
     private final AppointmentsRepo appointmentsRepo;
+
     public AppointmentsController(AppointmentsService appointmentsService, AppointmentsRepo appointmentsRepo) {
         this.appointmentsService = appointmentsService;
         this.appointmentsRepo = appointmentsRepo;
     }
+
     @PostMapping
-    public ResponseEntity<Appointments> create(@RequestBody AppointmentsDTO dto,
-                                               HttpServletRequest http) {
+    public ResponseEntity<Appointments> create(@RequestBody AppointmentsDTO dto) {
 
-        var session = http.getSession(false);
-        if (session == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        UUID patientId = (UUID) session.getAttribute("uid");
-        if (patientId == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        User user = (User) authentication.getPrincipal();
+        UUID patientId = user.getId();
+
+        System.out.println("user: " + authentication.getPrincipal());
+
 
         var app = new Appointments();
 
@@ -38,19 +47,56 @@ public class AppointmentsController {
         Appointments saved = appointmentsRepo.save(app);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
-    @GetMapping(value = "doctor/{id}")
-    public ResponseEntity<List<Appointments>> getAppForDoc(@PathVariable UUID id){
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<Boolean> cancelAppointment(@PathVariable UUID id) {
 
-        try{
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.CANCELLED));
+    }
+    @PutMapping("/{id}/confirm")
+    public ResponseEntity<Boolean> acceptAppointment(@PathVariable UUID id) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.CONFIRMED));
+    }
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<Boolean> rejectAppointment(@PathVariable UUID id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.REJECTED));
+    }
+
+    @GetMapping(value = "doctor/{id}")
+    public ResponseEntity<List<Appointments>> getAppForDoc(@PathVariable UUID id) {
+
+        try {
             var res = appointmentsService.GetAllAppointmentsDoctor(id);
             return ResponseEntity.ok(res);
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-
-
-
+    @GetMapping(value = "patient/{id}")
+    public ResponseEntity<List<Appointments>> getAppForPatient(@PathVariable UUID id) {
+        try {
+            var res = appointmentsService.GetAllAppointmentsPatient(id);
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

@@ -1,4 +1,4 @@
-import React from "react";
+
 import DoctorsPage from "./DoctorsPage";
 
 export type User = {

@@ -1,6 +1,8 @@
-import React, { use, useEffect, useMemo, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import {  useEffect, useState } from "react";
+
 import "./DoctorsProfilePage.css";
+import { useAuth } from "../../Authentification Context/AuthContext.tsx";
+import AppointmentsDoctorView from "../../components/AppointmentsDoctorView";
 
 export type DoctorMe = {
   id: string;
@@ -32,17 +34,7 @@ export type DoctorMe = {
   } | null;
 };
 
-type FetchState =
-  | { status: "idle" | "loading" }
-  | { status: "ready"; data: DoctorMe }
-  | { status: "error"; message: string; code?: number };
 
-//const ME_ENDPOINT = import.meta.env.VITE_ME_ENDPOINT || "http://localhost:8080/api/doctors/me";
-
-//const ME_ENDPOINT = "/data/doctorProfile.json";
-function dayName(idx: number) {
-  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][idx] ?? `Day ${idx}`;
-}
 function formatPrice(cents: number) {
   return `${(cents / 100).toFixed(0)} RON`;
 }
@@ -59,10 +51,10 @@ interface DoctorDTO {
   ratingCount: number;
 }
 
-export default function DoctorProfile_outside({ id }: { id: string }) {
-  // const { user, setUser } = useAuth();
+export default function DoctorProfile() {
+  const { user } = useAuth();
 
-  //const id = user?.id;
+  const id = user?.id;
   const [doctor, setDoctor] = useState<DoctorDTO | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -190,6 +182,9 @@ export default function DoctorProfile_outside({ id }: { id: string }) {
           </div>
         </div>
       </section>
+
+      <AppointmentsDoctorView />
+
     </div>
   );
 }

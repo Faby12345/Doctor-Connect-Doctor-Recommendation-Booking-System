@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../Authentification Context/AuthContext.tsx";
 
 type Appointment = {
   id: string;
@@ -17,6 +17,7 @@ export default function AppointmentsDoctorView() {
   const [items, setItems] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  //const [acceptAppointment, setAcceptAppointment] = useState<true | false>(false);
 
   if (authLoading) return <div style={{ padding: 16 }}>Loading user…</div>;
   if (!user || user.role !== "DOCTOR") return null;
@@ -41,7 +42,7 @@ export default function AppointmentsDoctorView() {
   }
 
   useEffect(() => {
-    fetchAppointments(doctorId); // ✅ pass a definite string
+    fetchAppointments(doctorId);
   }, [doctorId]);
 
   if (loading) {
@@ -79,6 +80,48 @@ export default function AppointmentsDoctorView() {
     );
   }
 
+  async function acceptAppointmentHandle(id: string) {
+    setLoading(true);
+    setErr(null);
+    try {
+      const res = await fetch(
+          `${API_URL}/api/appointments/${encodeURIComponent(id)}/confirm`,
+          {
+            credentials: "include",
+            method: "PUT",
+          }
+      );
+      if(!res.ok) throw new Error(await res.text());
+      //setAcceptAppointment(true);
+    }
+    catch (e: any) {
+      setErr(e?.message ?? "Failed to accept appointment");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function rejectAppointmentHandle(id: string) {
+    setLoading(true);
+    setErr(null);
+    try {
+      const res = await fetch(
+          `${API_URL}/api/appointments/${encodeURIComponent(id)}/reject`,
+          {
+            credentials: "include",
+            method: "PUT",
+          }
+      );
+      if(!res.ok) throw new Error(await res.text());
+      //setAcceptAppointment(true);
+    }
+    catch (e: any) {
+      setErr(e?.message ?? "Failed to reject the appointment");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div style={{ display: "grid", gap: 12 }}>
       <div style={{ fontWeight: 700, fontSize: 18 }}>Your Appointments</div>
@@ -114,7 +157,29 @@ export default function AppointmentsDoctorView() {
                 <span style={pillStyle}>{a.status}</span>
               </div>
               <div>
-                <button style={btnBase}>Accept</button>
+                <button onClick={() => {
+                  if (a.status === "CONFIRMED") {
+                    alert("Already confirmed");
+                    return
+                  };
+                  acceptAppointmentHandle(a.id)
+                  a.status = "CONFIRMED";
+                  //setAcceptAppointment(false);
+                }} style={btnBase}>Accept
+                </button>
+              </div>
+              <div>
+                <button onClick={() => {
+                  if (a.status === "REJECTED") {
+                    alert("Already rejected");
+                    return;
+                  }
+
+                  rejectAppointmentHandle(a.id)
+                  a.status = "REJECTED";
+                  //setAcceptAppointment(false);
+                }} style={btnBase}>Reject
+                </button>
               </div>
             </div>
           </div>
