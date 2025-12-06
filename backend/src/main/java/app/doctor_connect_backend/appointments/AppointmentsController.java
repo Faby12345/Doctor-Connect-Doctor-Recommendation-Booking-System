@@ -33,6 +33,9 @@ public class AppointmentsController {
         User user = (User) authentication.getPrincipal();
         UUID patientId = user.getId();
 
+        System.out.println("user: " + authentication.getPrincipal());
+
+
         var app = new Appointments();
 
         app.setPatientId(patientId);

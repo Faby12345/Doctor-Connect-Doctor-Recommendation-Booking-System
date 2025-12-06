@@ -1,7 +1,7 @@
-import UserAppointments from "../components/UserAppointments.tsx";
-import {useAuth} from "../AuthContext.tsx";
+import UserAppointments from "../../components/UserAppointments.tsx";
+import { useAuth } from "../../Authentification Context/AuthContext.tsx";
 import {useNavigate } from "react-router-dom";
-import React from "react";
+
 
 export default function PatientProfile() {
     const { user, setUser} = useAuth();

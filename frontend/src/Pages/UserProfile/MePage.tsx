@@ -1,10 +1,10 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-import {useAuth} from "../AuthContext.tsx";
+import { useAuth } from "../../Authentification Context/AuthContext.tsx";
 
 import DoctorProfilePage from "../DoctorProfile/DoctorProfilePage.tsx";
 import PatientProfile from "./PatientProfile";
-//import AdminDashboard from "./AdminDashboard"; // or AdminProfile, etc.
+//import AdminDashboard from "./AdminDashboard";
 import NotAuthPage from "./NotAuthPage.tsx";
 
 const MePage: React.FC = () => {
@@ -32,7 +32,6 @@ const MePage: React.FC = () => {
         //     return <AdminDashboard />;
 
         default:
-
             return <NotAuthPage />;
 
     }

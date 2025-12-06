@@ -1,15 +1,13 @@
-// App.tsx
-import React from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 
-import LoginPage from "./login";
-import RegisterPage from "./register";
-import MainPage from "./MainPage";
-import DoctorsPage from "./DoctorsPage";
-import DoctorProfileRoute from "./DoctorProfile/DoctorProfileRoute";
+import LoginPage from "./Pages/login.tsx";
+import RegisterPage from "./Pages/register";
+import MainPage from "./Pages/MainPage";
+import DoctorsPage from "./Pages/DoctorsPage";
+import DoctorProfileRoute from "./Pages/DoctorProfile/DoctorProfileRoute";
 //import DoctorProfile_outside from "./DoctorProfile/DoctorProfilePage_outside"; // if still used elsewhere
 import Dock from "./components/Dock";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "./Authentification Context/AuthContext.tsx";
 import {
   VscHome,
   VscArchive,
@@ -17,7 +15,7 @@ import {
   VscSettingsGear,
 } from "react-icons/vsc";
 
-import MePage from "./UserProfile/MePage";
+import MePage from "./Pages/UserProfile/MePage";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
@@ -57,7 +55,6 @@ export default function App() {
     navigate("/");
   }
 
-  // Boot screen while AuthContext loads /api/auth/me
   if (loading) return <div style={{ padding: 24 }}>Loading…</div>;
 
   return (
@@ -73,7 +70,7 @@ export default function App() {
         )}
 
         <Routes>
-          {/* Public routes (when not logged in) */}
+
           {!user ? (
               <>
                 <Route
@@ -110,15 +107,13 @@ export default function App() {
               </>
           ) : (
               <>
-                {/* Private/main area when logged in */}
+
                 <Route
                     path="/"
                     element={<MainPage user={user} onLogout={handleLogout} />}
                 />
                 <Route path="/doctors" element={<DoctorsPage />} />
                 <Route path="/doctor/:id" element={<DoctorProfileRoute />} />
-
-                {/* ✅ /me now handled by MePage (doctor/patient/admin) */}
                 <Route path="/me" element={<MePage />} />
               </>
           )}
