@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../Authentification Context/AuthContext.tsx";
 
 type Appointment = {
   id: string;

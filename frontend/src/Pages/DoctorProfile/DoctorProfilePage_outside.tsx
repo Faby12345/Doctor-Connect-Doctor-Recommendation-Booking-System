@@ -1,5 +1,5 @@
-import {useEffect, useState } from "react";
-//import { useParams } from "react-router-dom";
+import  { useEffect, useState } from "react";
+
 import "./DoctorsProfilePage.css";
 
 export type DoctorMe = {
@@ -32,11 +32,6 @@ export type DoctorMe = {
   } | null;
 };
 
-
-
-//const ME_ENDPOINT = import.meta.env.VITE_ME_ENDPOINT || "http://localhost:8080/api/doctors/me";
-
-//const ME_ENDPOINT = "/data/doctorProfile.json";
 
 function formatPrice(cents: number) {
   return `${(cents / 100).toFixed(0)} RON`;
@@ -77,7 +72,7 @@ export default function DoctorProfile_outside({ id }: { id: string }) {
         return r.json();
       })
       .then((data) => {
-        // If backend uses "speciality", normalize:
+
         const normalized = data.specialty
           ? data
           : { ...data, specialty: data.speciality };

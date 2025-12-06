@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
-import DoctorCard from "./components/DoctorCard";
-import useDebounce from "./hooks/useDebounce";
-import "./doctors.css";
+import { useEffect, useMemo, useState } from "react";
+import DoctorCard from "../components/DoctorCard";
+import useDebounce from "../hooks/useDebounce";
+import "./Styles/doctors.css";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../Authentification Context/AuthContext.tsx";
 
 export type DoctorRow = {
   id: string;

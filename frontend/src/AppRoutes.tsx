@@ -2,9 +2,9 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 
-import MePage from "./UserProfile/MePage";
-import LoginPage from "./login";
-import NotAuthPage from "./UserProfile/NotAuthPage.tsx";
+import MePage from "./Pages/UserProfile/MePage";
+import LoginPage from "./Pages/login.tsx";
+import NotAuthPage from "./Pages/UserProfile/NotAuthPage.tsx";
 
 const AppRoutes: React.FC = () => {
     return (
