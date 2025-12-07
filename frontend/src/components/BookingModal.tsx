@@ -1,4 +1,3 @@
-// 1. Removed "React" from the import. Now it only imports "useState".
 import { useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -17,7 +16,8 @@ interface BookingModalProps {
 }
 
 export default function BookingModal({ doctor, onClose, onConfirm, isLoading }: BookingModalProps) {
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    // CHANGE 1: Start with null so nothing is pre-selected
+    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
     if (!doctor) return null;
 
@@ -33,12 +33,14 @@ export default function BookingModal({ doctor, onClose, onConfirm, isLoading }: 
                     <label>Select Date & Time</label>
                     <DatePicker
                         selected={selectedDate}
-                        onChange={(date) => date && setSelectedDate(date)}
+                        onChange={(date) => setSelectedDate(date)}
                         showTimeSelect
                         inline
                         timeIntervals={30}
                         dateFormat="MMMM d, yyyy h:mm aa"
                         minDate={new Date()}
+                        // Optional: Add placeholder text (though 'inline' hides this usually)
+                        placeholderText="Click to select a time"
                     />
                 </div>
 
@@ -48,8 +50,10 @@ export default function BookingModal({ doctor, onClose, onConfirm, isLoading }: 
                     </button>
                     <button
                         className="btn btnPrimary"
-                        onClick={() => onConfirm(selectedDate)}
-                        disabled={isLoading}
+                        disabled={isLoading || !selectedDate}
+                        onClick={() => {
+                            if (selectedDate) onConfirm(selectedDate);
+                        }}
                     >
                         {isLoading ? "Booking..." : "Confirm Booking"}
                     </button>
