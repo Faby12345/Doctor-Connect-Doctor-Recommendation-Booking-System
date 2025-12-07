@@ -1,0 +1,65 @@
+/* src/components/BookingModal.css */
+
+/* --- LAYOUT (Required to make it a popup) --- */
+
+/* The Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* Dimmed background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(2px);
+}
+
+/* The Modal Box - NOW WHITE */
+.modal-content {
+    background-color: #ffffff; /* White background */
+    padding: 24px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); /* Softer shadow */
+    color: #333333; /* Dark text */
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #000;
+}
+.modal-header .muted {
+    margin-top: 4px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.calendar-container {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* --- OPTIONAL: Branding (Make the selected date Purple) --- */
+/* If you want the blue default, delete everything below this line. */
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__time-list-item--selected {
+    background-color: #914db3 !important; /* Your Purple Brand Color */
+    color: white !important;
+}
+
+.react-datepicker__header {
+    background-color: #f0f0f0 !important; /* Light grey header */
+    border-bottom: 1px solid #ddd !important;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
