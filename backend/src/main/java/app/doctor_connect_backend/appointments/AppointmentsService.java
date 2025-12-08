@@ -1,13 +1,10 @@
 package app.doctor_connect_backend.appointments;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -18,8 +15,9 @@ public class AppointmentsService {
         this.appointmentsRepo = appointmentsRepo;
     }
 
+    @SuppressWarnings("null")
     public @NonNull Appointments save(Appointments appointments) {
-        return appointmentsRepo.save(appointments);
+        return Objects.requireNonNull(appointmentsRepo.save(appointments));
     }
 
     public List<Appointments> GetAllAppointmentsDoctor(UUID doctorId) {

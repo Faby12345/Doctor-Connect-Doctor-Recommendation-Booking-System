@@ -36,6 +36,7 @@ public class DoctorService {
 
     }
 
+    @SuppressWarnings("null")
     public @NonNull Doctor save(Doctor doctor) {
         return Objects.requireNonNull(doctorRepository.save(doctor));
     }

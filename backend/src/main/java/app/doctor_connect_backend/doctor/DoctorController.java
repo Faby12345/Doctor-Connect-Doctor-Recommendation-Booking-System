@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -54,13 +55,14 @@ public class DoctorController {
         try {
             // Update user fullName if provided
             if (dto.fullName() != null && !dto.fullName().isBlank()) {
-                userService.updateUser(user.getId(),
+                userService.updateUser(Objects.requireNonNull(user.getId()),
                         new app.doctor_connect_backend.user.UserUpdateDTO(dto.fullName()));
             }
 
             // Update doctor profile
-            Doctor updated = doctorService.updateDoctor(user.getId(), dto);
-            var updatedUser = userService.findById(user.getId());
+            UUID userId = Objects.requireNonNull(user.getId());
+            Doctor updated = doctorService.updateDoctor(userId, dto);
+            var updatedUser = userService.findById(userId);
 
             DoctorDTO response = new DoctorDTO(
                     updated.getUserId(),

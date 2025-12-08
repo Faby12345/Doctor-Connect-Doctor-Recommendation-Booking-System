@@ -5,6 +5,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -63,6 +64,7 @@ public class UserService {
     }
 
     @Transactional
+    @SuppressWarnings("null")
     public User updateUser(@NonNull UUID id, UserUpdateDTO dto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -71,6 +73,6 @@ public class UserService {
             user.setFullName(dto.fullName().trim());
         }
 
-        return userRepository.save(user);
+        return Objects.requireNonNull(userRepository.save(user));
     }
 }

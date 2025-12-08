@@ -6,6 +6,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
+
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -27,7 +29,7 @@ public class UserController {
         User user = (User) authentication.getPrincipal();
 
         try {
-            User updated = userService.updateUser(user.getId(), dto);
+            User updated = userService.updateUser(Objects.requireNonNull(user.getId()), dto);
             var response = new UserResponse(
                     updated.getId(),
                     updated.getFullName(),

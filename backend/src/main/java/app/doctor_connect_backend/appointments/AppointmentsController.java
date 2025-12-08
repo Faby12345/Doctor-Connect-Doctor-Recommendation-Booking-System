@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,8 +34,6 @@ public class AppointmentsController {
         User user = (User) authentication.getPrincipal();
         UUID patientId = user.getId();
 
-
-
         var app = new Appointments();
 
         app.setPatientId(patientId);
@@ -46,8 +45,9 @@ public class AppointmentsController {
         Appointments saved = appointmentsRepo.save(app);
         return ResponseEntity.status(HttpStatus.CREATED).body(saved);
     }
+
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<Boolean> cancelAppointment(@PathVariable UUID id) {
+    public ResponseEntity<Boolean> cancelAppointment(@PathVariable @NonNull UUID id) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -56,8 +56,9 @@ public class AppointmentsController {
 
         return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.CANCELLED));
     }
+
     @PutMapping("/{id}/confirm")
-    public ResponseEntity<Boolean> acceptAppointment(@PathVariable UUID id) {
+    public ResponseEntity<Boolean> acceptAppointment(@PathVariable @NonNull UUID id) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -67,8 +68,9 @@ public class AppointmentsController {
 
         return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.CONFIRMED));
     }
+
     @PutMapping("/{id}/reject")
-    public ResponseEntity<Boolean> rejectAppointment(@PathVariable UUID id) {
+    public ResponseEntity<Boolean> rejectAppointment(@PathVariable @NonNull UUID id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -77,8 +79,9 @@ public class AppointmentsController {
 
         return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.REJECTED));
     }
+
     @PutMapping("/{id}/completed")
-    public ResponseEntity<Boolean> completeAppointment(@PathVariable UUID id) {
+    public ResponseEntity<Boolean> completeAppointment(@PathVariable @NonNull UUID id) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()) {
