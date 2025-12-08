@@ -5,6 +5,7 @@ import app.doctor_connect_backend.appointments.AppointmentsRepo;
 import app.doctor_connect_backend.appointments.AppointmentsStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -46,8 +47,8 @@ public class ReviewService {
     public Review findByPatientId(UUID patientId) {
         return reviewRepository.findByPatientId(patientId);
     }
-    public Review findByDoctorId(UUID doctorId) {
-        return reviewRepository.findByDoctorId(doctorId);
+    public List<ReviewResponseDTO> findAllByDoctorId(UUID doctorId) {
+        return reviewRepository.findAllByDoctorId(doctorId);
     }
 
 }

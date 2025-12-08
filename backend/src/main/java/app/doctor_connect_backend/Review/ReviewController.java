@@ -9,6 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -38,22 +39,19 @@ public class ReviewController {
         Review saved = reviewService.save(dto, p.getId());
         return new ResponseEntity<>(new ReviewResponseDTO(saved), HttpStatus.CREATED);
     }
+    @GetMapping("/doctor/{id}")
+    public ResponseEntity<List<ReviewResponseDTO>> getReviewsForDoctor(
+            @PathVariable UUID id, Authentication authentication)
+    {
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return ResponseEntity.ok(reviewService.findAllByDoctorId(id));
+
+    }
 
 
-    /** VARIANTA DE TEST API */
-//    @PostMapping
-//    public ResponseEntity<ReviewResponseDTO> save(@RequestBody ReviewCreateDTO dto) {
-//        // TEMP: hardcoded patient for testing
-//        try{
-//            UUID patientId = UUID.fromString("af87ffdc-946d-4b58-9bf2-d861be110171");
-//
-//            Review saved = reviewService.save(dto, patientId);
-//            ReviewResponseDTO res = new ReviewResponseDTO(saved);
-//
-//            return ResponseEntity.status(HttpStatus.CREATED).body(res);
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//
-//    }
+
 }

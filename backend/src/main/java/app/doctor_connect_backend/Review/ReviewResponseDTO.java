@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record ReviewResponseDTO(
         UUID id,
+        UUID patientId,
         UUID appointmentId,
         UUID doctorId,
         int rating,
@@ -12,7 +13,7 @@ public record ReviewResponseDTO(
         Instant createdAt
 ) {
     public ReviewResponseDTO(Review r) {
-        this(r.getId(), r.getAppointmentId(), r.getDoctorId(),
+        this(r.getId(),r.getPatientId(), r.getAppointmentId(), r.getDoctorId(),
                 r.getRating(), r.getComment(), r.getCreatedAt());
     }
 }
