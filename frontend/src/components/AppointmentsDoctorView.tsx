@@ -101,6 +101,27 @@ export default function AppointmentsDoctorView() {
     }
   }
 
+  async function completAppointmentHandle(id: string) {
+    setLoading(true);
+    setErr(null);
+    try {
+      const res = await fetch(
+          `${API_URL}/api/appointments/${encodeURIComponent(id)}/completed`,
+          {
+            credentials: "include",
+            method: "PUT",
+          }
+      );
+      if(!res.ok) throw new Error(await res.text());
+      //setAcceptAppointment(true);
+    }
+    catch (e: any) {
+      setErr(e?.message ?? "Failed to accept appointment");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function rejectAppointmentHandle(id: string) {
     setLoading(true);
     setErr(null);
@@ -179,6 +200,20 @@ export default function AppointmentsDoctorView() {
                   a.status = "REJECTED";
                   //setAcceptAppointment(false);
                 }} style={btnBase}>Reject
+                </button>
+              </div>
+
+              <div>
+                <button onClick={() => {
+                  if (a.status === "COMPLETED") {
+                    alert("Already completed");
+                    return;
+                  }
+
+                  completAppointmentHandle(a.id)
+                  a.status = "COMPLETED";
+                  //setAcceptAppointment(false);
+                }} style={btnBase}>Mark as Completed
                 </button>
               </div>
             </div>

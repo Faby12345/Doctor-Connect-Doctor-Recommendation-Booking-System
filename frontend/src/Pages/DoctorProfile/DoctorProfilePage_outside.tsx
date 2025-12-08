@@ -1,6 +1,7 @@
 import  { useEffect, useState } from "react";
 
 import "./DoctorsProfilePage.css";
+import ReviewsDoctorView from "../../components/DoctorReviews.tsx"
 
 export type DoctorMe = {
   id: string;
@@ -180,6 +181,9 @@ export default function DoctorProfile_outside({ id }: { id: string }) {
           </div>
         </div>
       </section>
+      <div className="reviews">
+        <ReviewsDoctorView id ={doctor.id}/>
+      </div>
     </div>
   );
 }
