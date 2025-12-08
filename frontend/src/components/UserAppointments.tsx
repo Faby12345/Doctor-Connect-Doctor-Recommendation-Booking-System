@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../Authentification Context/AuthContext.tsx";
+import RatingModal from "./RatingModalPopUp.tsx";
 
 type Appointment = {
     id: string;
@@ -9,7 +10,11 @@ type Appointment = {
     time: string;
     status: string;
 };
-
+type Review = {
+    appointmentId: string;
+    rating: number;
+    comment: string;
+}
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 export default function UserAppointments() {
@@ -17,7 +22,7 @@ export default function UserAppointments() {
     const [items, setItems] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState<string | null>(null);
-    //const [acceptAppointment, setAcceptAppointment] = useState<true | false>(false);
+    const [ratingForId, setRatingForId] = useState<string | null>(null);
 
     if (authLoading) return <div style={{ padding: 16 }}>Loading user…</div>;
     if (!user || user.role !== "PATIENT") return null;
@@ -100,6 +105,39 @@ export default function UserAppointments() {
             setLoading(false);
         }
     }
+    const handleReview = async (appId : string, r: number, c: string) =>{
+
+        const newReview: Review = {
+            appointmentId: appId,
+            rating: r,
+            comment: c,
+        };
+        const token = localStorage.getItem("accessToken");
+        try{
+            const res = await fetch(`${API_URL}/api/review`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
+                credentials: "include",
+                body: JSON.stringify(newReview),
+            });
+            if(!res.ok) throw new Error(await res.text());
+
+
+        }
+        catch (e: any) {
+            setErr(e?.message ?? "Failed to add review");
+        }
+
+    }
+    const handleSubmitRating = async (rating: number, comment: string) => {
+        if (!ratingForId) return;
+        await handleReview(ratingForId, rating, comment);
+        setRatingForId(null);
+
+    };
 
 
 
@@ -148,13 +186,30 @@ export default function UserAppointments() {
                                     //setAcceptAppointment(false);
                                 }} style={btnBase}>CANCEL
                                 </button>
+                                <button onClick={() => {
+                                    if(a.status === "COMPLETED") {
+                                        setRatingForId(a.id)
+                                    } else {
+                                        alert("You have not completed the appointment yet. Please complete it first to rate the doctor.")
+                                    }
+
+                                }} style={btnBase}>
+                                    Review
+                                </button>
                             </div>
 
                         </div>
+
+
                     </div>
                 );
             })}
+            <RatingModal
+                isOpen={ratingForId !== null}
+                onClose={() => setRatingForId(null)}
+                onSubmit={handleSubmitRating}
 
+            />
             <div>
                 <button onClick={() => fetchAppointments(user.id)} style={btnBase}>
                     Refresh

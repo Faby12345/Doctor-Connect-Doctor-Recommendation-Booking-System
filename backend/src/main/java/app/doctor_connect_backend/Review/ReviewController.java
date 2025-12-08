@@ -2,6 +2,7 @@ package app.doctor_connect_backend.Review;
 
 
 import app.doctor_connect_backend.user.User;
+import app.doctor_connect_backend.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,8 +15,11 @@ import java.util.UUID;
 @RequestMapping("/api/review")
 public class ReviewController {
     private final ReviewService reviewService;
-    public ReviewController(ReviewService reviewService) {
+    private final UserService userService;
+
+    public ReviewController(ReviewService reviewService, UserService userService) {
         this.reviewService = reviewService;
+        this.userService = userService;
     }
 
     @PostMapping()
@@ -29,8 +33,9 @@ public class ReviewController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        UUID patientId = UUID.fromString(authentication.getName());
-        Review saved = reviewService.save(dto, patientId);
+        String patientEmail= authentication.getName();
+        User p = userService.findEmail(patientEmail);
+        Review saved = reviewService.save(dto, p.getId());
         return new ResponseEntity<>(new ReviewResponseDTO(saved), HttpStatus.CREATED);
     }
 
