@@ -1,5 +1,5 @@
 // AuthContext.tsx
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 
 export type AuthUser = {
   id: string;
@@ -12,40 +12,46 @@ export type AuthUser = {
 type AuthContextType = {
   user: AuthUser | null;
   setUser: (u: AuthUser | null) => void;
-  loading: boolean; // ✅ add this
+  loading: boolean;
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true); // ✅ add this
+  const [loading, setLoading] = useState(true);
   const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
-  useEffect(() => {
-    async function loadUser() {
-      try {
-        const res = await fetch(`${API_URL}/api/auth/me`, {
-          credentials: "include",
-        });
-        if (res.ok) {
-          const data = (await res.json()) as AuthUser;
-          setUser(data);
-        } else {
-          setUser(null);
-        }
-      } catch (err) {
-        console.error(err);
+  const loadUser = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/me`, {
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = (await res.json()) as AuthUser;
+        setUser(data);
+      } else {
         setUser(null);
-      } finally {
-        setLoading(false); // ✅ done booting
       }
+    } catch (err) {
+      console.error(err);
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
-    loadUser();
   }, [API_URL]);
 
+  useEffect(() => {
+    loadUser();
+  }, [loadUser]);
+
+  const refreshUser = useCallback(async () => {
+    await loadUser();
+  }, [loadUser]);
+
   return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
+    <AuthContext.Provider value={{ user, setUser, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

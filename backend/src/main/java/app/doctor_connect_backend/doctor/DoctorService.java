@@ -39,4 +39,29 @@ public class DoctorService {
     public @NonNull Doctor save(Doctor doctor) {
         return Objects.requireNonNull(doctorRepository.save(doctor));
     }
+
+    public Doctor updateDoctor(UUID userId, DoctorUpdateDTO dto) {
+        Doctor doctor = doctorRepository.findByUserId(userId);
+        if (doctor == null) {
+            throw new IllegalArgumentException("Doctor profile not found");
+        }
+
+        if (dto.speciality() != null && !dto.speciality().isBlank()) {
+            doctor.setSpeciality(dto.speciality().trim());
+        }
+        if (dto.city() != null && !dto.city().isBlank()) {
+            doctor.setCity(dto.city().trim());
+        }
+        if (dto.bio() != null && !dto.bio().isBlank()) {
+            doctor.setBio(dto.bio().trim());
+        }
+        if (dto.priceMinCents() != null) {
+            doctor.setPriceMinCents(dto.priceMinCents());
+        }
+        if (dto.priceMaxCents() != null) {
+            doctor.setPriceMaxCents(dto.priceMaxCents());
+        }
+
+        return doctorRepository.save(doctor);
+    }
 }

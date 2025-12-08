@@ -61,4 +61,16 @@ public class UserService {
     public User findById(@NonNull UUID id) {
         return userRepository.findById(id).orElseThrow();
     }
+
+    @Transactional
+    public User updateUser(@NonNull UUID id, UserUpdateDTO dto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        if (dto.fullName() != null && !dto.fullName().isBlank()) {
+            user.setFullName(dto.fullName().trim());
+        }
+
+        return userRepository.save(user);
+    }
 }
