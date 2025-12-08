@@ -77,6 +77,16 @@ public class AppointmentsController {
 
         return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.REJECTED));
     }
+    @PutMapping("/{id}/completed")
+    public ResponseEntity<Boolean> completeAppointment(@PathVariable UUID id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.COMPLETED));
+    }
 
     @GetMapping(value = "doctor/{id}")
     public ResponseEntity<List<Appointments>> getAppForDoc(@PathVariable UUID id) {
