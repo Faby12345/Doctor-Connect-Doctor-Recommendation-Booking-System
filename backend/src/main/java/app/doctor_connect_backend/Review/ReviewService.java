@@ -7,6 +7,7 @@ import app.doctor_connect_backend.doctor.Doctor;
 import app.doctor_connect_backend.doctor.DoctorRepository;
 import app.doctor_connect_backend.user.User;
 import app.doctor_connect_backend.user.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -25,37 +26,35 @@ public class ReviewService {
         this.appointmentsRepo = appointmentsRepo;
         this.doctorRepository = doctorRepository;
     }
-    private void calculateAvgRateForDoctor(Review review) {
-        Doctor doctor = doctorRepository.findById(review.getDoctorId())
+    @Transactional
+    protected void calculateAvgRateForDoctor(Review review) {
+        Doctor doctor = doctorRepository
+                .findByUserIdWithLock(review.getDoctorId())
                 .orElseThrow(() -> new RuntimeException("Doctor not found"));
-        doctor.setRatingCount(doctor.getRatingCount() + 1);
-        List<ReviewResponseDTO> reviews = reviewRepository.findAllByDoctorId(doctor.getUserId());
 
-        if(reviews.isEmpty()){
-            doctor.setRatingAvg(BigDecimal.ZERO);
+
+        int currentCount =  doctor.getRatingCount();
+        BigDecimal currentSum, avarage;
+        if(currentCount == 0){
+            currentSum = BigDecimal.valueOf(review.getRating());
+            avarage = currentSum;
+            currentCount++;
         } else {
-            int intS = 0;
-            for(ReviewResponseDTO r : reviews){
-                intS += r.rating();
-            }
-            BigDecimal sum = BigDecimal.valueOf(intS);
-
-            BigDecimal count = BigDecimal.valueOf(reviews.size());
-            doctor.setRatingAvg(sum.divide(count, 2, BigDecimal.ROUND_HALF_UP));
+            currentSum = doctor.getRatingAvg().multiply(BigDecimal.valueOf(currentCount));
+            currentCount++;
+            currentSum = currentSum.add(BigDecimal.valueOf(review.getRating()));
+            avarage = currentSum.divide(BigDecimal.valueOf(currentCount), 2, BigDecimal.ROUND_HALF_UP);
         }
+        doctor.setRatingCount(currentCount);
+        doctor.setRatingAvg(avarage);
         doctorRepository.save(doctor);
+
     }
 
+    @Transactional
     public Review save(ReviewCreateDTO dto, UUID patientId) {
         Appointments appointment = appointmentsRepo.findById(Objects.requireNonNull(dto.appointmentId()))
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
-        // if (!appointment.getPatientId().equals(patientId)) {
-        // throw new RuntimeException("You can only review your own appointments");
-        // }
-        // if(!appointment.getStatus().equals(AppointmentsStatus.COMPLETED.toString())){
-        // throw new RuntimeException("You can only review completed appointments");
-        // }
-
         try {
             Review r = new Review();
             r.setAppointmentId(dto.appointmentId());
