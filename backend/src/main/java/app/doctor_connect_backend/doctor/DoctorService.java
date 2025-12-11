@@ -1,5 +1,6 @@
 package app.doctor_connect_backend.doctor;
 
+import app.doctor_connect_backend.Review.Review;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -65,4 +66,5 @@ public class DoctorService {
 
         return doctorRepository.save(doctor);
     }
+
 }
