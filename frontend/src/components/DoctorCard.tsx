@@ -1,5 +1,3 @@
-
-
 export type Doctor = {
   id: string;
   fullName: string;
@@ -8,7 +6,7 @@ export type Doctor = {
   priceMinCents: number;
   priceMaxCents: number;
   verified: boolean;
-  ratingAvg: number; // 0..5
+  ratingAvg: number;
   ratingCount: number;
 };
 
@@ -23,44 +21,93 @@ export default function DoctorCard({
 }: {
   d: Doctor;
   onView?: (id: string) => void;
-  onBook?: (id: string) => void; // doc id
+  onBook?: (id: string) => void;
 }) {
   return (
     <div
-      className="card"
       role="article"
       aria-label={`${d.fullName} ${d.specialty}`}
+      className="
+        border border-slate-200 rounded-xl bg-white
+        p-6 flex flex-col h-full
+        shadow-sm hover:shadow-xl hover:-translate-y-1
+        transition-all duration-300
+      "
     >
-      <div className="cardHeader">
-        <strong className="cardTitle">{d.fullName}</strong>
-        <span className="muted">({d.specialty})</span>
-        {d.verified && <span className="badgeVerified">Verified ✓</span>}
-        <span
-          style={{ marginLeft: "auto" }}
-          className="muted"
-          aria-label="rating"
-        >
+      {/* HEADER */}
+      <div
+        className="
+          flex flex-wrap items-center gap-2
+          pb-3 border-b border-dashed border-slate-200
+        "
+      >
+        <strong className="text-lg font-semibold text-slate-800 relative">
+          {d.fullName}
+          <span className="block absolute left-0 -bottom-1 w-6 h-[2px] bg-blue-600/30 rounded"></span>
+        </strong>
+
+        <span className="text-slate-500 text-sm">({d.specialty})</span>
+
+        {d.verified && (
+          <span
+            className="
+              text-xs border border-emerald-500 text-emerald-600
+              bg-emerald-50 px-2 py-[2px] rounded-full
+            "
+          >
+            Verified ✓
+          </span>
+        )}
+
+        <span className="ml-auto text-slate-500 text-sm">
           ★ {d.ratingAvg.toFixed(1)} ({d.ratingCount})
         </span>
       </div>
 
-      <div className="row">
+      {/* CITY + PRICE */}
+      <div
+        className="
+          flex justify-between flex-wrap
+          text-slate-600 text-sm mt-4
+        "
+      >
         <span>
-          City: <b>{d.city}</b>
+          City: <b className="text-slate-700">{d.city}</b>
         </span>
+
         <span>
           Price:{" "}
-          <b>
+          <b className="text-blue-600 font-semibold">
             {formatPrice(d.priceMinCents)} – {formatPrice(d.priceMaxCents)}
           </b>
         </span>
       </div>
 
-      <div className="btnRow">
-        <button className="btn btnGhost" onClick={() => onView?.(d.id)}>
+      {/* 🟦 EXTRA EMPTY SPACE (the only thing added) */}
+      <div className="mt-24"></div>
+
+      {/* BUTTONS (unchanged size, unchanged layout) */}
+      <div className="flex gap-3 mt-auto">
+        <button
+          onClick={() => onView?.(d.id)}
+          className="
+            flex-1 px-4 py-2.5 rounded-lg border border-slate-300
+            bg-white text-slate-700 font-semibold
+            hover:shadow-md transition-all active:scale-[0.98]
+          "
+        >
           View Profile
         </button>
-        <button className="btn btnPrimary" onClick={() => onBook?.(d.id)}>
+
+        <button
+          onClick={() => onBook?.(d.id)}
+          className="
+            flex-1 px-4 py-2.5 rounded-lg
+            bg-blue-600 text-white font-semibold
+            shadow-md hover:bg-blue-700 hover:shadow-xl
+            transition-all active:scale-[0.98]
+          "
+        >
           Book
         </button>
       </div>

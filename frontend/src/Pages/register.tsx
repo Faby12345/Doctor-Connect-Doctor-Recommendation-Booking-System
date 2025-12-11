@@ -98,7 +98,7 @@ export default function RegisterPage({
     const user = await res.json();
     console.log("Registered:", user);
 
-   
+
   } catch (err: any) {
     setServerError(err.message ?? "Could not create account.");
   } finally {
