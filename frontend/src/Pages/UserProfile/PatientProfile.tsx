@@ -57,6 +57,7 @@ export default function PatientProfile() {
                 {/* Profile Header Card */}
                 <div className="bg-white rounded-2xl shadow-lg shadow-blue-100/50 border border-slate-100 overflow-hidden mb-6">
                     {/* Banner */}
+
                     <div className="h-24 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600" />
 
                     <div className="px-6 pb-6 -mt-12">

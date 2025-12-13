@@ -1,4 +1,5 @@
 services:
+  # --- Database Service (Unchanged) ---
   db:
     image: postgres:16
     container_name: docmarket-db
@@ -16,6 +17,8 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+
+  # --- Adminer (Unchanged) ---
   adminer:
     image: adminer:4
     container_name: docmarket-adminer
@@ -25,6 +28,7 @@ services:
     depends_on:
       - db
 
+  # --- Backend Service (Updated) ---
   app:
     build:
       context: backend
@@ -37,14 +41,25 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-docmarket}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-docuser}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-docpass}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
-      APP_CORS_ORIGIN: ${APP_CORS_ORIGIN:-http://localhost:5173}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update  # Changed to 'update' so tables are created automatically on first run
+      # CRITICAL CHANGE: Update CORS to match the port we give the frontend below (3000)
+      APP_CORS_ORIGIN: http://localhost:3000
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-please-change}
     ports:
       - "8080:8080"
     restart: unless-stopped
 
+  # --- Frontend Service (NEW) ---
+  frontend:
+    build:
+      context: frontend  # Looks for Dockerfile inside /frontend folder
+      dockerfile: Dockerfile
+    container_name: docmarket-frontend
+    ports:
+      - "3000:80" # Maps localhost:3000 -> Container Port 80 (Nginx)
+    depends_on:
+      - app # Wait for backend to start
+    restart: unless-stopped
+
 volumes:
   db_data:
-
-
