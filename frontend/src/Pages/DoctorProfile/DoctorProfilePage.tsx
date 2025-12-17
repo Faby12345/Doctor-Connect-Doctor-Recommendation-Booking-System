@@ -374,7 +374,10 @@ export default function DoctorProfile() {
         </div>
 
       )}
-      <WeeklyAppointmentsChart/>
+      <div className="max-w-4xl mx-auto">
+        <WeeklyAppointmentsChart />
+      </div>
+      
     </div>
   );
 }
