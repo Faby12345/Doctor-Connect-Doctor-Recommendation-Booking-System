@@ -43,23 +43,23 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-docpass}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update  # Changed to 'update' so tables are created automatically on first run
       # CRITICAL CHANGE: Update CORS to match the port we give the frontend below (3000)
-      APP_CORS_ORIGIN: http://localhost:3000
+      APP_CORS_ORIGIN: "http://localhost:5173,http://localhost:5174" # localhost:3000 when the front end is running in docker
       APP_JWT_SECRET: ${APP_JWT_SECRET:-dev-please-change}
     ports:
       - "8080:8080"
     restart: unless-stopped
 
   # --- Frontend Service (NEW) ---
-  frontend:
-    build:
-      context: frontend  # Looks for Dockerfile inside /frontend folder
-      dockerfile: Dockerfile
-    container_name: docmarket-frontend
-    ports:
-      - "3000:80" # Maps localhost:3000 -> Container Port 80 (Nginx)
-    depends_on:
-      - app # Wait for backend to start
-    restart: unless-stopped
+#  frontend:
+#    build:
+#      context: frontend  # Looks for Dockerfile inside /frontend folder
+#      dockerfile: Dockerfile
+#    container_name: docmarket-frontend
+#    ports:
+#      - "3000:80" # Maps localhost:3000 -> Container Port 80 (Nginx)
+#    depends_on:
+#      - app # Wait for backend to start
+#    restart: unless-stopped
 
 volumes:
   db_data:
