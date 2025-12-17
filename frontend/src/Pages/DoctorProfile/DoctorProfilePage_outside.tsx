@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
 import ReviewsDoctorView from "../../components/DoctorReviews";
-//tailwind css
 export type DoctorMe = {
   id: string;
   fullName: string;

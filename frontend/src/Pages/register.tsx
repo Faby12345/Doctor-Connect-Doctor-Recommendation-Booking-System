@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-//tailwindcss
 type Roles = "PATIENT" | "DOCTOR" | "ADMIN";
 
 type RegisterValues = {

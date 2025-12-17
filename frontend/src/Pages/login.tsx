@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react";
-//tailwindcss
 type LoginValues = { email: string; password: string };
 
 export type LoginPageProps = {
