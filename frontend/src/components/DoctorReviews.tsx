@@ -1,155 +1,129 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../Authentification Context/AuthContext.tsx";
 import StarRating from "./StarRating.tsx";
+
 type Review = {
-    id: string;
-    patientId: string;
-    appointmentId: string;
-    doctorId: string;
-    rating: number;
-    comment: string;
-    createdAt: string;
+  id: string;
+  patientId: string;
+  appointmentId: string;
+  doctorId: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
 };
+
 type ReviewsDoctorViewProps = {
-    id: string;
+  id: string;
 };
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
-export default function ReviewsDoctorView({id} : ReviewsDoctorViewProps) {
-    const { user, loading: authLoading } = useAuth();
-    const [items, setItems] = useState<Review[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [err, setErr] = useState<string | null>(null);
+export default function ReviewsDoctorView({ id }: ReviewsDoctorViewProps) {
+  const { user, loading: authLoading } = useAuth();
+  const [items, setItems] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
 
+  if (authLoading) return <div className="p-4">Loading user…</div>;
+  if (!user) return null;
 
-    if (authLoading) return <div style={{ padding: 16 }}>Loading user…</div>;
-    if (!user) return null;
-    const doctorId = id;
+  const doctorId = id;
 
-    async function fetchReviews(id: string) {
-        setLoading(true);
-        setErr(null);
-        try {
-            const res = await fetch(
-                `${API_URL}/api/review/doctor/${encodeURIComponent(id)}`,
-                { credentials: "include" }
-            );
-            if (!res.ok) throw new Error(await res.text());
-            const data = (await res.json()) as Review[];
-            setItems(data);
-        } catch (e: any) {
-            setErr(e?.message ?? "Failed to load reviews");
-        } finally {
-            setLoading(false);
-        }
+  async function fetchReviews(id: string) {
+    setLoading(true);
+    setErr(null);
+    try {
+      const res = await fetch(
+        `${API_URL}/api/review/doctor/${encodeURIComponent(id)}`,
+        { credentials: "include" }
+      );
+      if (!res.ok) throw new Error(await res.text());
+      const data = (await res.json()) as Review[];
+      setItems(data);
+    } catch (e: any) {
+      setErr(e?.message ?? "Failed to load reviews");
+    } finally {
+      setLoading(false);
     }
+  }
 
-    useEffect(() => {
-        fetchReviews(doctorId);
-    }, [doctorId]);
+  useEffect(() => {
+    fetchReviews(doctorId);
+  }, [doctorId]);
 
-    if (loading) {
-        return <div style={{ padding: 16 }}>Loading reviews…</div>;
-    }
+  if (loading) {
+    return <div className="p-4">Loading reviews…</div>;
+  }
 
-    if (err) {
-        return (
-            <div style={{ padding: 16, color: "crimson" }}>
-                Error: {err}{" "}
-                <button
-                    onClick={() => fetchReviews(doctorId)}
-                    style={btnLinkStyle}
-                >
-                    Retry
-                </button>
-            </div>
-        );
-    }
-
-    if (items.length === 0) {
-        return (
-            <div style={cardStyle}>
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                    Your Appointments
-                </div>
-                <div style={{ color: "#666" }}>No reviews found.</div>
-                <button
-                    onClick={() => fetchReviews(doctorId)}
-                    style={{ ...btnBase, marginTop: 12 }}
-                >
-                    Refresh
-                </button>
-            </div>
-        );
-    }
-
-
+  if (err) {
     return (
-        <div style={{ display: "grid", gap: 12 }}>
-            <div style={{ fontWeight: 700, fontSize: 18 }}>Reviews</div>
-
-            {items.map((a) => {
-                return (
-                    <div key={a.id} style={cardStyle}>
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                gap: 12,
-                            }}
-                        >
-
-
-
-                            <div>
-
-                                <div style={{ marginTop: 4, color: "#555" }}>
-                                    Patient ID: {a.patientId}
-                                </div>
-                                <StarRating rating={a.rating} />
-                                <div style={{ fontWeight: 600 }}>{new Date(a.createdAt).toLocaleString()}</div>
-
-                                <div style={{ marginTop: 4, fontSize: 22, color: "#777" }}>
-                                    Comment: {a.comment}
-                                </div>
-                            </div>
-
-
-                            </div>
-                    </div>
-                );
-            })}
-
-            <div>
-                <button onClick={() => fetchReviews(doctorId)} style={btnBase}>
-                    Refresh
-                </button>
-            </div>
-        </div>
+      <div className="p-4 text-red-600">
+        Error: {err}{" "}
+        <button
+          onClick={() => fetchReviews(doctorId)}
+          className="ml-2 underline underline-offset-2 text-red-700 hover:text-red-800"
+        >
+          Retry
+        </button>
+      </div>
     );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+        <div className="mb-1 font-semibold">Your Appointments</div>
+        <div className="text-gray-600">No reviews found.</div>
+
+        <button
+          onClick={() => fetchReviews(doctorId)}
+          className="mt-3 inline-flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 active:scale-[0.99]"
+        >
+          Refresh
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-3">
+      <div className="text-lg font-bold">Reviews</div>
+
+      {items.map((a) => (
+        <div
+          key={a.id}
+          className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm"
+        >
+          <div className="flex justify-between gap-3">
+            <div>
+              <div className="mt-1 text-sm text-gray-600">
+                Patient ID: {a.patientId}
+              </div>
+
+              <div className="mt-2">
+                <StarRating rating={a.rating} />
+              </div>
+
+              <div className="mt-2 font-semibold">
+                {new Date(a.createdAt).toLocaleString()}
+              </div>
+
+              <div className="mt-1 text-[22px] text-gray-500">
+                Comment: {a.comment}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      <div>
+        <button
+          onClick={() => fetchReviews(doctorId)}
+          className="inline-flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 active:scale-[0.99]"
+        >
+          Refresh
+        </button>
+      </div>
+    </div>
+  );
 }
-
-/* styles */
-const cardStyle: React.CSSProperties = {
-    border: "1px solid #e5e7eb",
-    borderRadius: 12,
-    padding: 12,
-    boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
-    background: "#fff",
-};
-const btnBase: React.CSSProperties = {
-    borderRadius: 8,
-    padding: "8px 12px",
-    border: "1px solid #e5e7eb",
-    background: "#f9fafb",
-    cursor: "pointer",
-};
-const btnLinkStyle: React.CSSProperties = {
-    ...btnBase,
-    padding: "2px 6px",
-    background: "transparent",
-    border: "none",
-    textDecoration: "underline",
-};
-
