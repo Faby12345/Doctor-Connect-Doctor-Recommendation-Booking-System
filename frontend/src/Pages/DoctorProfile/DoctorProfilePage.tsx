@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../../Authentification Context/AuthContext.tsx";
 import AppointmentsDoctorView from "../../components/AppointmentsDoctorView";
 import { useNavigate } from "react-router-dom";
+import  WeeklyAppointmentsChart from "../../components/testChart.tsx"
 
 interface DoctorDTO {
   id: string;
@@ -371,7 +372,9 @@ export default function DoctorProfile() {
             </div>
           </div>
         </div>
+
       )}
+      <WeeklyAppointmentsChart/>
     </div>
   );
 }
