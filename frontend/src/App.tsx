@@ -5,7 +5,6 @@ import RegisterPage from "./Pages/register";
 import MainPage from "./Pages/MainPage";
 import DoctorsPage from "./Pages/DoctorsPage";
 import DoctorProfileRoute from "./Pages/DoctorProfile/DoctorProfileRoute";
-//import DoctorProfile_outside from "./DoctorProfile/DoctorProfilePage_outside"; // if still used elsewhere
 import Dock from "./components/Dock";
 import { useAuth } from "./Authentification Context/AuthContext.tsx";
 import {
@@ -20,7 +19,7 @@ import MePage from "./Pages/UserProfile/MePage";
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 export default function App() {
-  const { user, setUser, loading } = useAuth(); // ✅ from context
+  const { user, setUser, loading } = useAuth();
   const navigate = useNavigate();
 
   const items = [
@@ -55,75 +54,70 @@ export default function App() {
     navigate("/");
   }
 
-  if (loading) return <div style={{ padding: 24 }}>Loading…</div>;
+  if (loading) return <div className="p-6">Loading…</div>;
 
   return (
-      <>
-        {/* Show Dock only when logged in */}
-        {user && (
-            <Dock
-                items={items}
-                panelHeight={75}
-                baseItemSize={70}
-                magnification={90}
+    <>
+      {/* Show Dock only when logged in */}
+      {user && (
+        <Dock
+          items={items}
+          panelHeight={75}
+          baseItemSize={70}
+          magnification={90}
+        />
+      )}
+
+      <Routes>
+        {!user ? (
+          <>
+            <Route
+              path="/register"
+              element={
+                <RegisterPage
+                  onRegister={async (vals) => {
+                    const res = await fetch(`${API_URL}/api/auth/register`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      credentials: "include",
+                      body: JSON.stringify(vals),
+                    });
+                    if (!res.ok) throw new Error(await res.text());
+                    navigate("/");
+                  }}
+                  onNavigateToLogin={() => navigate("/")}
+                />
+              }
             />
+            <Route
+              path="/"
+              element={
+                <LoginPage
+                  onNavigateToRegister={() => navigate("/register")}
+                  onLoginSuccess={(u) => {
+                    setUser(u);
+                    if (u.role === "DOCTOR") navigate("/doctors");
+                    else navigate("/");
+                  }}
+                />
+              }
+            />
+          </>
+        ) : (
+          <>
+            <Route
+              path="/"
+              element={<MainPage user={user} onLogout={handleLogout} />}
+            />
+            <Route path="/doctors" element={<DoctorsPage />} />
+            <Route path="/doctor/:id" element={<DoctorProfileRoute />} />
+            <Route path="/me" element={<MePage />} />
+          </>
         )}
 
-        <Routes>
-
-          {!user ? (
-              <>
-                <Route
-                    path="/register"
-                    element={
-                      <RegisterPage
-                          onRegister={async (vals) => {
-                            const res = await fetch(`${API_URL}/api/auth/register`, {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              credentials: "include",
-                              body: JSON.stringify(vals),
-                            });
-                            if (!res.ok) throw new Error(await res.text());
-                            navigate("/");
-                          }}
-                          onNavigateToLogin={() => navigate("/")}
-                      />
-                    }
-                />
-                <Route
-                    path="/"
-                    element={
-                      <LoginPage
-                          onNavigateToRegister={() => navigate("/register")}
-                          onLoginSuccess={(u) => {
-                            setUser(u);
-                            if (u.role === "DOCTOR") navigate("/doctors");
-                            else navigate("/");
-                          }}
-                      />
-                    }
-                />
-              </>
-          ) : (
-              <>
-
-                <Route
-                    path="/"
-                    element={<MainPage user={user} onLogout={handleLogout} />}
-                />
-                <Route path="/doctors" element={<DoctorsPage />} />
-                <Route path="/doctor/:id" element={<DoctorProfileRoute />} />
-                <Route path="/me" element={<MePage />} />
-              </>
-          )}
-
-          {/* Fallback */}
-          <Route
-              path="*"
-              element={<div style={{ padding: 24 }}>Not found</div>}
-          />
-        </Routes>
-      </>
+        {/* Fallback */}
+        <Route path="*" element={<div className="p-6">Not found</div>} />
+      </Routes>
+    </>
   );
 }

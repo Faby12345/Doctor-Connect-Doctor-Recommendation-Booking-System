@@ -1,4 +1,3 @@
-
 import DoctorsPage from "./DoctorsPage";
 
 export type User = {
@@ -18,26 +17,25 @@ export default function MainPage({
   onLogout: () => void;
 }) {
   return (
-    <div style={{ padding: 24, display: "grid", gap: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <h2 style={{ margin: 0, alignItems: "center" }}>
+    <div className="grid gap-4 p-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <h2 className="m-0 text-xl font-semibold">
           Welcome, {user.fullName}
         </h2>
-        <div style={{ marginLeft: "auto" }}>
+
+        <div className="ml-auto">
           <button
             onClick={onLogout}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 12,
-              border: "1px solid #e6eefc",
-              cursor: "pointer",
-            }}
+            className="rounded-xl border border-blue-100 px-3 py-2 text-sm font-medium text-gray-900 hover:bg-blue-50 active:scale-[0.98]"
           >
             Logout
           </button>
         </div>
       </div>
-      <p style={{ marginTop: 0, color: "#475467" }}>
+
+      {/* User info */}
+      <p className="mt-0 text-sm text-gray-600">
         Email: {user.email} — Role: {user.role}
       </p>
 
