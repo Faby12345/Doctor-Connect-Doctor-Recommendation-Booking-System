@@ -53,7 +53,7 @@ export default function DoctorsPage() {
   const [bookingState, setBookingState] = useState<
     null | "loading" | "success" | "error"
   >(null);
-  const [bookingError, setBookingError] = useState<string | null>(null);
+  const [, setBookingError] = useState<string | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorRow | null>(null);
 
   useEffect(() => {

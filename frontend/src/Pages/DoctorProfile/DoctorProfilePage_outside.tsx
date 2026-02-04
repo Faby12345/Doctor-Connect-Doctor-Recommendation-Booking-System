@@ -1,34 +1,34 @@
 import { useEffect, useState, type ReactNode } from "react";
 import ReviewsDoctorView from "../../components/DoctorReviews";
-export type DoctorMe = {
-  id: string;
-  fullName: string;
-  specialty: string;
-  avatarUrl?: string | null;
-  bio?: string | null;
-  yearsOfExperience?: number | null;
-  languages?: string[] | null;
-  contact: { email: string; phone?: string | null; website?: string | null };
-  clinic?: {
-    name: string;
-    addressLine1?: string | null;
-    addressLine2?: string | null;
-    city?: string | null;
-    state?: string | null;
-    zip?: string | null;
-    country?: string | null;
-  } | null;
-  availability?: Array<{
-    dayOfWeek: number;
-    start: string;
-    end: string;
-  }> | null;
-  stats?: {
-    patientsCount?: number | null;
-    appointmentsToday?: number | null;
-    rating?: number | null;
-  } | null;
-};
+// export type DoctorMe = {
+//   id: string;
+//   fullName: string;
+//   specialty: string;
+//   avatarUrl?: string | null;
+//   bio?: string | null;
+//   yearsOfExperience?: number | null;
+//   languages?: string[] | null;
+//   contact: { email: string; phone?: string | null; website?: string | null };
+//   clinic?: {
+//     name: string;
+//     addressLine1?: string | null;
+//     addressLine2?: string | null;
+//     city?: string | null;
+//     state?: string | null;
+//     zip?: string | null;
+//     country?: string | null;
+//   } | null;
+//   availability?: Array<{
+//     dayOfWeek: number;
+//     start: string;
+//     end: string;
+//   }> | null;
+//   stats?: {
+//     patientsCount?: number | null;
+//     appointmentsToday?: number | null;
+//     rating?: number | null;
+//   } | null;
+// };
 
 function formatPrice(cents: number) {
   return `${(cents / 100).toFixed(0)} RON`;

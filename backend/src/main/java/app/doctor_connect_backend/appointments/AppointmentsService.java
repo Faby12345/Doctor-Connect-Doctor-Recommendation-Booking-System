@@ -23,6 +23,10 @@ public class AppointmentsService {
     public List<Appointments> GetAllAppointmentsDoctor(UUID doctorId) {
         return appointmentsRepo.findAllByDoctorId(doctorId).stream().toList();
     }
+    public List<Appointments> GetAllIncomingAppointmentsPatient(UUID patientId){
+        List<Appointments> appointments = appointmentsRepo.findAllByPatientId(patientId);
+        return appointments.stream().filter(a -> a.getStatus().equals("CONFIRMED")).toList();
+    }
 
     public List<Appointments> GetAllAppointmentsPatient(UUID patientId) {
         return appointmentsRepo.findAllByPatientId(patientId).stream().toList();

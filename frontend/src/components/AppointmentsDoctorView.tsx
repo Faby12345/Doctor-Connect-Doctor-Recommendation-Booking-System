@@ -182,7 +182,7 @@ export default function AppointmentsDoctorView() {
                   if (a.status === "CONFIRMED") {
                     alert("Already confirmed");
                     return
-                  };
+                  }
                   acceptAppointmentHandle(a.id)
                   a.status = "CONFIRMED";
                   //setAcceptAppointment(false);
