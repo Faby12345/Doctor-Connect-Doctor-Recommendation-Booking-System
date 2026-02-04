@@ -1,5 +1,6 @@
 package app.doctor_connect_backend.auth.security;
 
+import app.doctor_connect_backend.user.Roles;
 import app.doctor_connect_backend.user.User;
 import app.doctor_connect_backend.user.UserRepository;
 import jakarta.servlet.FilterChain;

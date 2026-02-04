@@ -32,22 +32,26 @@ public class AppointmentsController {
 
     @PutMapping("/{id}/cancel")
     public ResponseEntity<Boolean> cancelAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
-        return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.CANCELLED));
+        appointmentsService.CancelAppointment(id, me.id(), me.role());
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/confirm")
-    public ResponseEntity<Boolean> acceptAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
-        return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.CONFIRMED));
+    public ResponseEntity<Boolean> confirmAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
+        appointmentsService.ConfirmAppointment(id, me.id(), me.role());
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/reject")
     public ResponseEntity<Boolean> rejectAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
-        return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.REJECTED));
+        appointmentsService.RejectAppointment(id, me.id(), me.role());
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/completed")
     public ResponseEntity<Boolean> completeAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
-        return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.COMPLETED));
+        appointmentsService.CompleteAppointment(id, me.id(), me.role());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping(value = "doctor/{id}")

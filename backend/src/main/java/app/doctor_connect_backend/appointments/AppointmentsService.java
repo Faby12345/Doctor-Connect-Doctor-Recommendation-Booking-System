@@ -1,5 +1,6 @@
 package app.doctor_connect_backend.appointments;
 
+import app.doctor_connect_backend.user.Roles;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -32,14 +33,71 @@ public class AppointmentsService {
         return appointmentsRepo.findAllByPatientId(patientId).stream().toList();
     }
 
-    public Boolean SetAppointmentStatus(@NonNull UUID id, AppointmentsStatus status) {
-        Appointments app = appointmentsRepo.findById(id)
+    public Boolean SetAppointmentStatus(@NonNull UUID AppointmentId, AppointmentsStatus status, UUID doctorId) {
+        Appointments app = appointmentsRepo.findById(AppointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         app.setStatus(status.toString());
         appointmentsRepo.save(app);
         return true;
     }
+    /**
+     * Only a pacient can cancel THEIR OWN appointment
+     * */
+    public void CancelAppointment(@NonNull UUID AppointmentId, UUID callerId,
+                                  String role) {
+        Appointments app = appointmentsRepo.findById(AppointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if(!role.equals(Roles.PATIENT.toString()))
+            throw new RuntimeException("You are not authorized to cancel this appointment");
+        if (!app.getPatientId().equals(callerId))
+            throw new RuntimeException("You are not authorized to cancel this appointment");
+
+        app.setStatus(AppointmentsStatus.CANCELLED.toString());
+    }
+
+
+    public void ConfirmAppointment(@NonNull UUID AppointmentId, UUID callerId, String role) {
+        Appointments app = appointmentsRepo.findById(AppointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if(!role.equals(Roles.DOCTOR.toString())){
+            throw new RuntimeException("You are not authorized to cancel this appointment");
+        }
+        if (!app.getDoctorId().equals(callerId)) {
+            throw new RuntimeException("You are not authorized to cancel this appointment");
+        }
+
+        app.setStatus(AppointmentsStatus.CONFIRMED.toString());
+    }
+    public void RejectAppointment(@NonNull UUID AppointmentId, UUID callerId, String role) {
+        Appointments app = appointmentsRepo.findById(AppointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if(!role.equals(Roles.DOCTOR.toString())){
+            throw new RuntimeException("You are not authorized to cancel this appointment");
+        }
+        if (!app.getDoctorId().equals(callerId)) {
+            throw new RuntimeException("You are not authorized to cancel this appointment");
+        }
+
+        app.setStatus(AppointmentsStatus.REJECTED.toString());
+    }
+    public void CompleteAppointment(@NonNull UUID AppointmentId, UUID callerId, String role) {
+        Appointments app = appointmentsRepo.findById(AppointmentId)
+                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
+        if(!role.equals(Roles.DOCTOR.toString())){
+            throw new RuntimeException("You are not authorized to cancel this appointment");
+        }
+        if (!app.getDoctorId().equals(callerId)) {
+            throw new RuntimeException("You are not authorized to cancel this appointment");
+        }
+
+        app.setStatus(AppointmentsStatus.COMPLETED.toString());
+    }
+
     public Appointments createAppointment(AppointmentsDTO dto, UUID patientId) {
         var app = new Appointments();
         app.setPatientId(patientId);
