@@ -8,12 +8,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -36,22 +38,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (jwt != null && jwtUtil.validateToken(jwt)) {
-                UUID userId = jwtUtil.getUserIdFromToken(jwt);
+               UUID userId = jwtUtil.getUserIdFromToken(jwt);
+               String email = jwtUtil.getEmailFromToken(jwt);
+               String role = jwtUtil.getRoleFromToken(jwt);
+               var authorities = List.of(
+                       new SimpleGrantedAuthority(role)
+               );
+               var principalUser = new UserPrincipal(
+                       userId,
+                       email,
+                       role,
+                       authorities
+               );
 
-                User user = userRepository.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("User not found"));
+               var authentication = new UsernamePasswordAuthenticationToken(
+                       principalUser,
+                       null,
+                       authorities);
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(user, null,
-                        user.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+               SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
             logger.error("Could not set user authentication in security context", ex);
         }
 
         filterChain.doFilter(request, response);
+
     }
 
     /**

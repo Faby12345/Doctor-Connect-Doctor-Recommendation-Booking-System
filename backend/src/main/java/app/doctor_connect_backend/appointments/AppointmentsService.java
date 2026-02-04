@@ -35,9 +35,19 @@ public class AppointmentsService {
     public Boolean SetAppointmentStatus(@NonNull UUID id, AppointmentsStatus status) {
         Appointments app = appointmentsRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
+
         app.setStatus(status.toString());
         appointmentsRepo.save(app);
         return true;
+    }
+    public Appointments createAppointment(AppointmentsDTO dto, UUID patientId) {
+        var app = new Appointments();
+        app.setPatientId(patientId);
+        app.setDoctorId(dto.doctorId());
+        app.setDate(dto.date());
+        app.setTime(dto.time());
+        app.setStatus(AppointmentsStatus.PENDING.toString());
+        return appointmentsRepo.save(app);
     }
 
 }

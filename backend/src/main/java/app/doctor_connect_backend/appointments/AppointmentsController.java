@@ -1,9 +1,11 @@
 package app.doctor_connect_backend.appointments;
 
+import app.doctor_connect_backend.auth.security.UserPrincipal;
 import app.doctor_connect_backend.user.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.*;
@@ -17,82 +19,39 @@ public class AppointmentsController {
     private final AppointmentsService appointmentsService;
     private final AppointmentsRepo appointmentsRepo;
 
+
     public AppointmentsController(AppointmentsService appointmentsService, AppointmentsRepo appointmentsRepo) {
         this.appointmentsService = appointmentsService;
         this.appointmentsRepo = appointmentsRepo;
     }
 
     @PostMapping
-    public ResponseEntity<Appointments> create(@RequestBody AppointmentsDTO dto) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        User user = (User) authentication.getPrincipal();
-        UUID patientId = user.getId();
-
-        var app = new Appointments();
-
-        app.setPatientId(patientId);
-        app.setDoctorId(dto.doctorId());
-        app.setDate(dto.date());
-        app.setTime(dto.time());
-        app.setStatus("Pending");
-
-        Appointments saved = appointmentsRepo.save(app);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    public ResponseEntity<Appointments> create(@AuthenticationPrincipal UserPrincipal me, @RequestBody AppointmentsDTO dto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(appointmentsService.createAppointment(dto, me.id()));
     }
 
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<Boolean> cancelAppointment(@PathVariable @NonNull UUID id) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
+    public ResponseEntity<Boolean> cancelAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
         return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.CANCELLED));
     }
 
     @PutMapping("/{id}/confirm")
-    public ResponseEntity<Boolean> acceptAppointment(@PathVariable @NonNull UUID id) {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
+    public ResponseEntity<Boolean> acceptAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
         return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.CONFIRMED));
     }
 
     @PutMapping("/{id}/reject")
-    public ResponseEntity<Boolean> rejectAppointment(@PathVariable @NonNull UUID id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
+    public ResponseEntity<Boolean> rejectAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
         return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.REJECTED));
     }
 
     @PutMapping("/{id}/completed")
-    public ResponseEntity<Boolean> completeAppointment(@PathVariable @NonNull UUID id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
+    public ResponseEntity<Boolean> completeAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
         return ResponseEntity.ok(appointmentsService.SetAppointmentStatus(id, AppointmentsStatus.COMPLETED));
     }
 
     @GetMapping(value = "doctor/{id}")
-    public ResponseEntity<List<Appointments>> getAppForDoc(@PathVariable UUID id) {
+    public ResponseEntity<List<Appointments>> getAppForDoc(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
 
         try {
             var res = appointmentsService.GetAllAppointmentsDoctor(id);
@@ -103,7 +62,7 @@ public class AppointmentsController {
     }
 
     @GetMapping(value = "patient/{id}")
-    public ResponseEntity<List<Appointments>> getAppForPatient(@PathVariable UUID id) {
+    public ResponseEntity<List<Appointments>> getAppForPatient(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
         try {
             var res = appointmentsService.GetAllAppointmentsPatient(id);
             return ResponseEntity.ok(res);
@@ -112,7 +71,7 @@ public class AppointmentsController {
         }
     }
     @GetMapping(value = "incoming/{id}")
-    public ResponseEntity<List<Appointments>> getIncomingAppForPatient(@PathVariable UUID id) {
+    public ResponseEntity<List<Appointments>> getIncomingAppForPatient(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
         try {
             var res = appointmentsService.GetAllIncomingAppointmentsPatient(id);
 
