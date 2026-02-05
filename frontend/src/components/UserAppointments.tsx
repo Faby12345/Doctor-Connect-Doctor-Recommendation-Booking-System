@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../Authentification Context/AuthContext.tsx";
 import RatingModal from "./RatingModalPopUp.tsx";
 
@@ -34,10 +34,15 @@ export default function UserAppointments() {
   async function fetchAppointments(id: string) {
     setLoading(true);
     setErr(null);
+    const token = localStorage.getItem("token");
+
     try {
       const res = await fetch(
         `${API_URL}/api/appointments/patient/${encodeURIComponent(id)}`,
-        { credentials: "include" }
+
+        { method: "GET",
+          headers: {"Authorization": `Bearer ${token}`}
+        }
       );
       if (!res.ok) throw new Error(await res.text());
       const data = (await res.json()) as Appointment[];
@@ -88,12 +93,18 @@ export default function UserAppointments() {
   async function cancelAppointmentHandle(id: string) {
     setLoading(true);
     setErr(null);
+    const token = localStorage.getItem("token");
+
     try {
       const res = await fetch(
         `${API_URL}/api/appointments/${encodeURIComponent(id)}/cancel`,
         {
-          credentials: "include",
+
           method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
         }
       );
       if (!res.ok) throw new Error(await res.text());

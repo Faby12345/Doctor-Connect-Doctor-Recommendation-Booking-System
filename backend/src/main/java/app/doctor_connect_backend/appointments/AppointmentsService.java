@@ -1,9 +1,14 @@
 package app.doctor_connect_backend.appointments;
 
+import app.doctor_connect_backend.doctor.Doctor;
+import app.doctor_connect_backend.doctor.DoctorService;
 import app.doctor_connect_backend.user.Roles;
+import app.doctor_connect_backend.user.User;
+import app.doctor_connect_backend.user.UserService;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -11,9 +16,10 @@ import java.util.UUID;
 @Service
 public class AppointmentsService {
     private final AppointmentsRepo appointmentsRepo;
-
-    public AppointmentsService(AppointmentsRepo appointmentsRepo) {
+    private final UserService userService;
+    public AppointmentsService(AppointmentsRepo appointmentsRepo, UserService userService) {
         this.appointmentsRepo = appointmentsRepo;
+        this.userService = userService;
     }
 
     @SuppressWarnings("null")
@@ -24,23 +30,37 @@ public class AppointmentsService {
     public List<Appointments> GetAllAppointmentsDoctor(UUID doctorId) {
         return appointmentsRepo.findAllByDoctorId(doctorId).stream().toList();
     }
-    public List<Appointments> GetAllIncomingAppointmentsPatient(UUID patientId){
+    public List<IncommingAppointmentsDTO> GetAllIncomingAppointmentsPatient(UUID patientId){
         List<Appointments> appointments = appointmentsRepo.findAllByPatientId(patientId);
-        return appointments.stream().filter(a -> a.getStatus().equals("CONFIRMED")).toList();
+        List<IncommingAppointmentsDTO> incommingAppointments = new ArrayList<>();
+        for(Appointments a : appointments){
+            if(a.getStatus().equals(AppointmentsStatus.CONFIRMED.toString())) {
+
+
+                User doctor = userService.findById(a.getDoctorId());
+                AppointmentsDTO appointmentDTO = new AppointmentsDTO(
+                        a.getId(),
+                        a.getDoctorId(),
+                        a.getDate(),
+                        a.getTime(),
+                        a.getStatus()
+                );
+                IncommingAppointmentsDTO incommingDTO = new IncommingAppointmentsDTO(
+                        appointmentDTO,
+                        doctor.getFullName()
+                );
+                incommingAppointments.add(incommingDTO);
+            }
+        }
+
+        return incommingAppointments;
     }
 
     public List<Appointments> GetAllAppointmentsPatient(UUID patientId) {
         return appointmentsRepo.findAllByPatientId(patientId).stream().toList();
     }
 
-    public Boolean SetAppointmentStatus(@NonNull UUID AppointmentId, AppointmentsStatus status, UUID doctorId) {
-        Appointments app = appointmentsRepo.findById(AppointmentId)
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        app.setStatus(status.toString());
-        appointmentsRepo.save(app);
-        return true;
-    }
     /**
      * Only a pacient can cancel THEIR OWN appointment
      * */
@@ -55,6 +75,7 @@ public class AppointmentsService {
             throw new RuntimeException("You are not authorized to cancel this appointment");
 
         app.setStatus(AppointmentsStatus.CANCELLED.toString());
+        appointmentsRepo.save(app);
     }
 
 
@@ -70,6 +91,7 @@ public class AppointmentsService {
         }
 
         app.setStatus(AppointmentsStatus.CONFIRMED.toString());
+        appointmentsRepo.save(app);
     }
     public void RejectAppointment(@NonNull UUID AppointmentId, UUID callerId, String role) {
         Appointments app = appointmentsRepo.findById(AppointmentId)
@@ -83,6 +105,7 @@ public class AppointmentsService {
         }
 
         app.setStatus(AppointmentsStatus.REJECTED.toString());
+        appointmentsRepo.save(app);
     }
     public void CompleteAppointment(@NonNull UUID AppointmentId, UUID callerId, String role) {
         Appointments app = appointmentsRepo.findById(AppointmentId)
@@ -96,6 +119,7 @@ public class AppointmentsService {
         }
 
         app.setStatus(AppointmentsStatus.COMPLETED.toString());
+        appointmentsRepo.save(app);
     }
 
     public Appointments createAppointment(AppointmentsDTO dto, UUID patientId) {
@@ -106,6 +130,16 @@ public class AppointmentsService {
         app.setTime(dto.time());
         app.setStatus(AppointmentsStatus.PENDING.toString());
         return appointmentsRepo.save(app);
+    }
+    public AppointmentsDTO getAppointmentDetails(UUID id){
+        Appointments app = appointmentsRepo.findById(id).orElseThrow();
+        return new AppointmentsDTO(
+                app.getId(),
+                app.getDoctorId(),
+                app.getDate(),
+                app.getTime(),
+                app.getStatus()
+        );
     }
 
 }

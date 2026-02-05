@@ -1,20 +1,17 @@
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
+import { VscHome, VscArchive, VscAccount, VscSettingsGear } from "react-icons/vsc";
 
+// Pages
 import LoginPage from "./Pages/login.tsx";
 import RegisterPage from "./Pages/register";
-import MainPage from "./Pages/MainPage";
+// import MainPage from "./Pages/MainPage"; // <-- Removing this if HomePagePatient replaces it
 import DoctorsPage from "./Pages/DoctorsPage";
 import DoctorProfileRoute from "./Pages/DoctorProfile/DoctorProfileRoute";
+import MePage from "./Pages/UserProfile/MePage";
+import HomePagePatient from "./Pages/HomePagePacient.tsx";
+import AppointmentDetailsPage from "./Pages/AppointemntDetailsPage.tsx";
 import Dock from "./components/Dock";
 import { useAuth } from "./Authentification Context/AuthContext.tsx";
-import {
-  VscHome,
-  VscArchive,
-  VscAccount,
-  VscSettingsGear,
-} from "react-icons/vsc";
-
-import MePage from "./Pages/UserProfile/MePage";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
@@ -22,11 +19,13 @@ export default function App() {
   const { user, setUser, loading } = useAuth();
   const navigate = useNavigate();
 
+  // MENTOR TIP:
+  // We use lowercase paths here to match standard web conventions.
   const items = [
     {
       icon: <VscHome size={27} />,
       label: "Home",
-      onClick: () => navigate("/"),
+      onClick: () => navigate("/"), // Simply go to root!
     },
     {
       icon: <VscArchive size={27} />,
@@ -41,83 +40,107 @@ export default function App() {
     {
       icon: <VscSettingsGear size={27} />,
       label: "Settings",
-      onClick: () => alert("Settings"),
+      onClick: () => alert("Settings"), // Todo: Make a settings page
     },
   ];
 
-  async function handleLogout() {
-    await fetch(`${API_URL}/api/auth/logout`, {
-      method: "POST",
-      credentials: "include",
-    });
+  async function  handleLogout() {
+    try {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (e) {
+      console.error("Logout failed", e);
+    }
+    // Always clear local state even if backend fails
     setUser(null);
+    localStorage.removeItem("token"); // If you switched to token auth
     navigate("/");
   }
 
-  if (loading) return <div className="p-6">Loading…</div>;
+  if (loading) return <div className="p-6">Loading application...</div>;
 
   return (
-    <>
-      {/* Show Dock only when logged in */}
-      {user && (
-        <Dock
-          items={items}
-          panelHeight={75}
-          baseItemSize={70}
-          magnification={90}
-        />
-      )}
-
-      <Routes>
-        {!user ? (
-          <>
-            <Route
-              path="/register"
-              element={
-                <RegisterPage
-                  onRegister={async (vals) => {
-                    const res = await fetch(`${API_URL}/api/auth/register`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      credentials: "include",
-                      body: JSON.stringify(vals),
-                    });
-                    if (!res.ok) throw new Error(await res.text());
-                    navigate("/");
-                  }}
-                  onNavigateToLogin={() => navigate("/")}
-                />
-              }
+      <>
+        {/* Show Dock only when logged in */}
+        {user && (
+            <Dock
+                items={items}
+                panelHeight={75}
+                baseItemSize={70}
+                magnification={90}
             />
-            <Route
-              path="/"
-              element={
-                <LoginPage
-                  onNavigateToRegister={() => navigate("/register")}
-                  onLoginSuccess={(u) => {
-                    setUser(u);
-                    if (u.role === "DOCTOR") navigate("/doctors");
-                    else navigate("/");
-                  }}
-                />
-              }
-            />
-          </>
-        ) : (
-          <>
-            <Route
-              path="/"
-              element={<MainPage user={user} onLogout={handleLogout} />}
-            />
-            <Route path="/doctors" element={<DoctorsPage />} />
-            <Route path="/doctor/:id" element={<DoctorProfileRoute />} />
-            <Route path="/me" element={<MePage />} />
-          </>
         )}
 
-        {/* Fallback */}
-        <Route path="*" element={<div className="p-6">Not found</div>} />
-      </Routes>
-    </>
+        <Routes>
+          {/* === GUEST ROUTES (Not Logged In) === */}
+          {!user ? (
+              <>
+                <Route
+                    path="/"
+                    element={
+                      <LoginPage
+                          onNavigateToRegister={() => navigate("/register")}
+                          onLoginSuccess={(u) => {
+                            setUser(u);
+                            // MENTOR TIP:
+                            // Navigate to root "/" for everyone.
+                            // The "Authenticated Routes" section below decides WHICH page they see at "/"
+                            navigate("/");
+                          }}
+                      />
+                    }
+                />
+                <Route
+                    path="/register"
+                    element={
+                      <RegisterPage
+                          onRegister={async (vals) => {
+                            const res = await fetch(`${API_URL}/api/auth/register`, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              credentials: "include",
+                              body: JSON.stringify(vals),
+                            });
+                            if (!res.ok) throw new Error(await res.text());
+                            navigate("/");
+                          }}
+                          onNavigateToLogin={() => navigate("/")}
+                      />
+                    }
+                />
+                {/* Catch-all: Redirect unknown guest URLs to Login */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </>
+          ) : (
+              /* === AUTHENTICATED ROUTES (Logged In) === */
+              <>
+                {/* MENTOR TIP: Dynamic Home Page
+               If the user is a Patient, "/" shows HomePagePatient.
+               If they are a Doctor, you might want to show a DoctorDashboard later.
+            */}
+                <Route
+                    path="/"
+                    element={
+                      user.role === "DOCTOR" ? <DoctorsPage /> : <HomePagePatient />
+                    }
+                />
+                <Route
+                    path ="/appointment-details/:id"
+                    element={ < AppointmentDetailsPage/>}
+
+                />
+
+                <Route path="/doctors" element={<DoctorsPage />} />
+                <Route path="/doctor/:id" element={<DoctorProfileRoute />} />
+                <Route path="/me" element={<MePage />} />
+
+                {/* Catch-all: Redirect unknown auth URLs to Home */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </>
+          )}
+        </Routes>
+      </>
   );
 }

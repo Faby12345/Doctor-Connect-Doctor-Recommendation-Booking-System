@@ -1,16 +1,19 @@
 package app.doctor_connect_backend.auth.web;
 
 import app.doctor_connect_backend.auth.app.AuthService;
+import app.doctor_connect_backend.auth.security.UserPrincipal;
 import app.doctor_connect_backend.auth.web.DTOs.AuthResponse;
 import app.doctor_connect_backend.auth.web.DTOs.LoginRequest;
 import app.doctor_connect_backend.auth.web.DTOs.RegisterRequest;
 import app.doctor_connect_backend.auth.web.DTOs.UserResponse;
 import app.doctor_connect_backend.user.Roles;
 import app.doctor_connect_backend.user.User;
+import app.doctor_connect_backend.user.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,9 +21,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
+    private final UserRepository userRepository;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, UserRepository userRepository) {
+
         this.authService = authService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/login")
@@ -51,36 +57,21 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> me() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).build();
-        }
-
-        User user = (User) authentication.getPrincipal();
-
-        if (user.getUserRole() == Roles.DOCTOR) {
-            // provide info
-        }
-        if (user.getUserRole() == Roles.PATIENT) {
-            // provide info
-        }
-        if (user.getUserRole() == Roles.ADMIN) {
-            // provide info
-        }
-
-        var res = new UserResponse(user.getId(), user.getFullName(), user.getEmail(), user.getUserRole(),
-                user.getCreatedAt());
-        return ResponseEntity.ok(res);
+    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal UserPrincipal me) {
+        User user = userRepository.findById(me.id()).orElseThrow();
+        return ResponseEntity.ok(new UserResponse(
+                user.getId(), user.getFullName(), user.getEmail(), user.getUserRole(), user.getCreatedAt()
+        ));
     }
+
 
     private Cookie createAuthCookie(String token) {
         Cookie cookie = new Cookie("jwt", token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(false);
         cookie.setPath("/");
         cookie.setMaxAge(24 * 60 * 60); // 24 hours
+
         return cookie;
     }
 }

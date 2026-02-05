@@ -62,7 +62,6 @@ export default function LoginPage({
 
       const res = await fetch("http://localhost:8080/api/auth/login", {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: values.email.trim().toLowerCase(),
@@ -71,22 +70,24 @@ export default function LoginPage({
       });
 
       if (!res.ok) {
-        let message = `Login failed (${res.status})`;
-
-        try {
-          const data = await res.json();
-          if (typeof data?.message === "string") message = data.message;
-        } catch {
-          const txt = await res.text();
-          if (txt) message = txt;
-        }
-
-        throw new Error(message);
+        // ... existing error handling ...
+        throw new Error("Login failed");
       }
 
-      const user = await res.json();
-      onLoginSuccess?.(user);
+      // === THE FIX ===
+      const data = await res.json();
+
+      // 1. Save the token to the hard drive (Critical for Refresh!)
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      // 2. Update React State
+      // Since your backend mixes the User fields (id, email) with the Token,
+      // we can just pass the whole 'data' object. It matches the AuthUser type.
+      onLoginSuccess?.(data);
       onLogin?.(values);
+
     } catch (err: any) {
       setServerError(err?.message ?? "Could not sign you in.");
     } finally {

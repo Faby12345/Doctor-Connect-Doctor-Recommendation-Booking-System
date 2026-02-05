@@ -24,6 +24,17 @@ public class AppointmentsController {
         this.appointmentsService = appointmentsService;
         this.appointmentsRepo = appointmentsRepo;
     }
+    @GetMapping("/details/{id}")
+    public ResponseEntity<AppointmentsDTO> getAppointmentDetails(@AuthenticationPrincipal UserPrincipal me,
+                                                                 @PathVariable @NonNull UUID id) {
+        try {
+            AppointmentsDTO dto = appointmentsService.getAppointmentDetails(id);
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+
+    }
 
     @PostMapping
     public ResponseEntity<Appointments> create(@AuthenticationPrincipal UserPrincipal me, @RequestBody AppointmentsDTO dto) {
@@ -75,10 +86,9 @@ public class AppointmentsController {
         }
     }
     @GetMapping(value = "incoming/{id}")
-    public ResponseEntity<List<Appointments>> getIncomingAppForPatient(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
+    public ResponseEntity<List<IncommingAppointmentsDTO>> getIncomingAppForPatient(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
         try {
             var res = appointmentsService.GetAllIncomingAppointmentsPatient(id);
-
             return ResponseEntity.ok(res);
         } catch (Exception e) {
             return ResponseEntity.notFound().build();
