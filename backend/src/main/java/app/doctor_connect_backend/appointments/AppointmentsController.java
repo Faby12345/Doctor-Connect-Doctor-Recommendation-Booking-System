@@ -17,12 +17,11 @@ import java.util.UUID;
 @RequestMapping("/api/appointments")
 public class AppointmentsController {
     private final AppointmentsService appointmentsService;
-    private final AppointmentsRepo appointmentsRepo;
+
 
 
     public AppointmentsController(AppointmentsService appointmentsService, AppointmentsRepo appointmentsRepo) {
         this.appointmentsService = appointmentsService;
-        this.appointmentsRepo = appointmentsRepo;
     }
     @GetMapping("/details/{id}")
     public ResponseEntity<AppointmentsDTO> getAppointmentDetails(@AuthenticationPrincipal UserPrincipal me,

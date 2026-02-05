@@ -1,11 +1,13 @@
 package app.doctor_connect_backend.Review;
 
+import app.doctor_connect_backend.auth.security.UserPrincipal;
 import app.doctor_connect_backend.user.User;
 import app.doctor_connect_backend.user.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,13 +25,10 @@ public class ReviewController {
 
     @PostMapping()
     public ResponseEntity<ReviewResponseDTO> save(
+            @AuthenticationPrincipal UserPrincipal me,
             @RequestBody ReviewCreateDTO dto,
             Authentication authentication) {
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getName())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+
 
         String patientEmail = authentication.getName();
         User p = userService.findEmail(patientEmail);
@@ -39,12 +38,9 @@ public class ReviewController {
 
     @GetMapping("/doctor/{id}")
     public ResponseEntity<List<ReviewResponseDTO>> getReviewsForDoctor(
+            @AuthenticationPrincipal UserPrincipal me,
             @PathVariable UUID id, Authentication authentication) {
-        if (authentication == null
-                || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getName())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+
         return ResponseEntity.ok(reviewService.findAllByDoctorId(id));
 
     }
