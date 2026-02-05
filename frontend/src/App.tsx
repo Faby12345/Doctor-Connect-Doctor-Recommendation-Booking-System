@@ -9,7 +9,7 @@ import DoctorsPage from "./Pages/DoctorsPage";
 import DoctorProfileRoute from "./Pages/DoctorProfile/DoctorProfileRoute";
 import MePage from "./Pages/UserProfile/MePage";
 import HomePagePatient from "./Pages/HomePagePacient.tsx";
-
+import AppointmentDetailsPage from "./Pages/AppointemntDetailsPage.tsx";
 import Dock from "./components/Dock";
 import { useAuth } from "./Authentification Context/AuthContext.tsx";
 
@@ -44,7 +44,7 @@ export default function App() {
     },
   ];
 
-  async function handleLogout() {
+  async function  handleLogout() {
     try {
       await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
@@ -125,6 +125,11 @@ export default function App() {
                     element={
                       user.role === "DOCTOR" ? <DoctorsPage /> : <HomePagePatient />
                     }
+                />
+                <Route
+                    path ="/appointment-details/:id"
+                    element={ < AppointmentDetailsPage/>}
+
                 />
 
                 <Route path="/doctors" element={<DoctorsPage />} />

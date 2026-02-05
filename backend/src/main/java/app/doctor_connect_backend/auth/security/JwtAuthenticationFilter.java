@@ -25,7 +25,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtUtil jwtUtil;
 
-    // Note: UserRepository was unused in your logic, removed for cleanliness unless you need it later
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
@@ -51,11 +50,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     String formattedRole = rawRole.startsWith("ROLE_") ? rawRole : "ROLE_" + rawRole;
                     var authorities = List.of(new SimpleGrantedAuthority(formattedRole));
 
-                    // 2. For Your App Logic (Keep it original/raw to avoid Enum crashes)
                     var principalUser = new UserPrincipal(
                             userId,
                             email,
-                            rawRole, // <--- CHANGE THIS: Use 'rawRole', not 'formattedRole'
+                            rawRole,
                             authorities
                     );
 

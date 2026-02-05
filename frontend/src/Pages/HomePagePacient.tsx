@@ -54,20 +54,18 @@ export default function HomePagePatient() {
                             </div>
                         </div>
 
-                        {/* You can add more wide widgets here later (e.g., "Recent Results") */}
                         <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100 h-40 flex items-center justify-center text-slate-400 border-dashed">
                             Placeholder for Medical History Graph
                         </div>
                     </div>
 
-                    {/* RIGHT COLUMN (1/3 width): Status & Widgets */}
+
                     <div className="space-y-6">
 
-                        {/* === HERE IS YOUR NEW COMPONENT === */}
-                        {/* It sits naturally in the sidebar column */}
+
                         <UpcomingAppointments />
 
-                        {/* Example of another widget stacking below it */}
+
                         <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
                             <h3 className="font-semibold text-slate-900">Need Help?</h3>
                             <p className="mt-2 text-sm text-slate-500">

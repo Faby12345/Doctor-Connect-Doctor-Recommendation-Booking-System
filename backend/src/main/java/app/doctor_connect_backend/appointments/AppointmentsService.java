@@ -131,5 +131,15 @@ public class AppointmentsService {
         app.setStatus(AppointmentsStatus.PENDING.toString());
         return appointmentsRepo.save(app);
     }
+    public AppointmentsDTO getAppointmentDetails(UUID id){
+        Appointments app = appointmentsRepo.findById(id).orElseThrow();
+        return new AppointmentsDTO(
+                app.getId(),
+                app.getDoctorId(),
+                app.getDate(),
+                app.getTime(),
+                app.getStatus()
+        );
+    }
 
 }

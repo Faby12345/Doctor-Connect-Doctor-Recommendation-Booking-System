@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { differenceInSeconds, isAfter } from "date-fns";
 import { useAuth } from "../Authentification Context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 // 1. MATCHING JAVA DATA SHAPE
 // Based on your controller returning "List<Appointments>"
@@ -25,12 +26,12 @@ export default function UpcomingAppointments() {
     const [appointments, setAppointments] = useState<IncomingAppointmentResponse[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // State for the countdown clock
     const [now, setNow] = useState(new Date());
+    const navigate = useNavigate();
 
-    // EFFECT 1: Fetch Data from YOUR Controller
+
     useEffect(() => {
-        // Safety check: Don't fetch if user isn't logged in yet
+
         if (!user || !user.id) return;
 
         const controller = new AbortController();
@@ -39,22 +40,19 @@ export default function UpcomingAppointments() {
             try {
                 setLoading(true);
 
-                // --- SENIOR DEV TIP: Handling Auth ---
-                // If you are using LocalStorage for tokens (Fixed 403):
+
                 const token = localStorage.getItem("token");
 
-                // Correct URL based on your Java Controller structure
-                // /api/appointments + /incoming/{id}
+
                 const response = await fetch(`http://localhost:8080/api/appointments/incoming/${user.id}`, {
                     signal: controller.signal,
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
-                        // Include the token if your backend expects the Header
+                        //
                         "Authorization": `Bearer ${token}`
                     },
-                    // If using Cookies instead of Header, uncomment this:
-                    // credentials: "include",
+
                 });
 
                 if (!response.ok) throw new Error("Failed to load appointments");
@@ -88,8 +86,7 @@ export default function UpcomingAppointments() {
 
         const upcoming = appointments
             .map((appt) => {
-                // 🛡️ Safety check 2: Does 'appointment' actually exist?
-                // If the backend sends a bad record, we skip it returning null.
+
                 if (!appt || !appt.appointment) {
                     console.warn("Found malformed appointment data:", appt);
                     return null;
@@ -144,8 +141,7 @@ export default function UpcomingAppointments() {
         );
     }
 
-    // FIX: Check if we actually have a VALID upcoming appointment.
-    // Even if 'appointments' has data, they might all be in the past!
+
     if (!nextAppointment) {
         return (
             <div className="rounded-2xl border border-slate-100 bg-white p-6 text-center shadow-sm">
@@ -154,7 +150,7 @@ export default function UpcomingAppointments() {
         );
     }
 
-    // ✅ CORRECT: Use the derived 'nextAppointment' object
+
     const { doctorName } = nextAppointment; // Extract from wrapper
     const { date, time } = nextAppointment.appointment; // Extract from inner details
 
@@ -185,7 +181,7 @@ export default function UpcomingAppointments() {
                 <div className="text-sm text-slate-500">
                     <button
                         onClick={() => {
-                            // Replace with your navigation logic (e.g., navigate(`/appointments/${a.id}`))
+                            navigate(`/appointment-details/${nextAppointment?.appointment.id}`);
 
                         }}
                         className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-indigo-700 transition-colors bg-indigo-50 rounded-lg hover:bg-indigo-100 hover:text-indigo-800"
