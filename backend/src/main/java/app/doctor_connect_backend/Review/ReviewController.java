@@ -26,13 +26,10 @@ public class ReviewController {
     @PostMapping()
     public ResponseEntity<ReviewResponseDTO> save(
             @AuthenticationPrincipal UserPrincipal me,
-            @RequestBody ReviewCreateDTO dto,
-            Authentication authentication) {
+            @RequestBody ReviewCreateDTO dto) {
 
+        Review saved = reviewService.save(dto, me.id());
 
-        String patientEmail = authentication.getName();
-        User p = userService.findEmail(patientEmail);
-        Review saved = reviewService.save(dto, p.getId());
         return new ResponseEntity<>(new ReviewResponseDTO(saved), HttpStatus.CREATED);
     }
 
