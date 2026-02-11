@@ -49,7 +49,6 @@ export default function UpcomingAppointments() {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
-                        //
                         "Authorization": `Bearer ${token}`
                     },
 

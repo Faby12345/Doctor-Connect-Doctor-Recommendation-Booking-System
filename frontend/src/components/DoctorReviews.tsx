@@ -32,10 +32,17 @@ export default function ReviewsDoctorView({ id }: ReviewsDoctorViewProps) {
   async function fetchReviews(id: string) {
     setLoading(true);
     setErr(null);
+    const token = localStorage.getItem("token");
+
     try {
       const res = await fetch(
         `${API_URL}/api/review/doctor/${encodeURIComponent(id)}`,
-        { credentials: "include" }
+        { method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+
+            "Authorization": `Bearer ${token}`
+          }, }
       );
       if (!res.ok) throw new Error(await res.text());
       const data = (await res.json()) as Review[];
@@ -72,7 +79,7 @@ export default function ReviewsDoctorView({ id }: ReviewsDoctorViewProps) {
   if (items.length === 0) {
     return (
       <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-        <div className="mb-1 font-semibold">Your Appointments</div>
+        <div className="mb-1 font-semibold">Reviews</div>
         <div className="text-gray-600">No reviews found.</div>
 
         <button

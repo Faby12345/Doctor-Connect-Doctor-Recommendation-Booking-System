@@ -1,11 +1,42 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Authentification Context/AuthContext";
 import UpcomingAppointments from "../components/UpcomingAppointments"; // Import your new lego block!
-
+import {useEffect, useState} from "react";
+import type {Appointment} from "../components/RebookCard.tsx";
+import {getLastAppointment} from "../services/appointmentServices.ts";
+import RebookCard from "../components/RebookCard.tsx";
 export default function HomePagePatient() {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const [lastAppointment, setLastAppointment] = useState<Appointment | null>(null);
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
+    // calling the endpoint for retriving the data for the last appointment
+    useEffect(() => {
+        const ctrl = new AbortController();
+        const fetchData = async () => {
+            try {
+                setIsLoading(true);
+                const data = await getLastAppointment(ctrl.signal);
+                setLastAppointment(data);
+            } catch (e: unknown) {
+                // Check if the error was "Aborted" (User left page) -> Ignore it
+                if (e instanceof Error && e.name === 'AbortError') {
+                    console.log("Fetch aborted");
+                    return;
+                }
+                console.error("Failed to load appointment", e);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        fetchData();
+        return () => ctrl.abort(); // cancel the control request if it is still running
+    }, []);
+    const handleRebook = (doctorId: string) => {
+        console.log("Re-booking doctor:", doctorId);
+        // Future: navigate(`/book/${doctorId}`);
+    };
     return (
         <div className="min-h-screen bg-[#F4F7FF] px-4 py-8 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-6xl space-y-8">
@@ -65,6 +96,24 @@ export default function HomePagePatient() {
 
                         <UpcomingAppointments />
 
+                        {isLoading ? (
+                            // Optional: A simple loading skeleton
+                            <div className="h-40 rounded-2xl bg-slate-100 animate-pulse" />
+                        ) : lastAppointment ? (
+                            // If we have data, show the card
+                            <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
+                                <h3 className="font-semibold text-slate-900 mb-4">Quick Re-book</h3>
+                                <RebookCard
+                                    appointment={lastAppointment}
+                                    onRebook={handleRebook}
+                                />
+                            </div>
+                        ) : (
+                            // If NO data (New User), show a helper message or nothing
+                            <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100 border-dashed text-center">
+                                <p className="text-sm text-slate-500">No past appointments to re-book.</p>
+                            </div>
+                        )}
 
                         <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
                             <h3 className="font-semibold text-slate-900">Need Help?</h3>

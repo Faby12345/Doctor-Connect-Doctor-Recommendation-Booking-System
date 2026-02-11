@@ -8,10 +8,7 @@ import app.doctor_connect_backend.user.UserService;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class AppointmentsService {
@@ -140,6 +137,32 @@ public class AppointmentsService {
                 app.getTime(),
                 app.getStatus()
         );
+    }
+    public AppointmentsDTO getLastAppointmentByPatient(UUID patientId) {
+
+            // optional handels the null excetion
+            Optional<Appointments> appOptional = appointmentsRepo.findFirstByPatientIdOrderByDateDesc(patientId);
+
+            if(appOptional.isPresent()){
+                Appointments app = appOptional.get();
+                System.out.println("DEBUG: Found appointment: " + app.toString());
+                return new AppointmentsDTO(
+                        app.getId(),
+                        app.getDoctorId(),
+                        app.getDate(),
+                        app.getTime(),
+                        app.getStatus()
+                );
+            } else {
+                // explicit handle the not found case
+                System.out.println("DEBUG: No appointment found for patient: " + patientId);
+                throw new RuntimeException("No appointments found for this patient");
+            }
+
+
+
+
+
     }
 
 }

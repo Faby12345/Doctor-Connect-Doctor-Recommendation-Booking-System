@@ -122,7 +122,7 @@ export default function UserAppointments() {
       comment: c,
     };
 
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("token");
     try {
       const res = await fetch(`${API_URL}/api/review`, {
         method: "POST",
