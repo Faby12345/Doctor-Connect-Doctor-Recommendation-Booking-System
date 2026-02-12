@@ -3,13 +3,53 @@ import { useAuth } from "../Authentification Context/AuthContext";
 import UpcomingAppointments from "../components/UpcomingAppointments"; // Import your new lego block!
 import {useEffect, useState} from "react";
 import type {Appointment} from "../components/RebookCard.tsx";
-import {getLastAppointment} from "../services/appointmentServices.ts";
 import RebookCard from "../components/RebookCard.tsx";
+import BookingModal from "../components/BookingModal";
+import { getLastAppointment} from "../services/appointmentServices";
+import createAppointment from "../services/appointmentServices";
 export default function HomePagePatient() {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [lastAppointment, setLastAppointment] = useState<Appointment | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedDoctor, setSelectedDoctor] = useState<{ id: string, fullName: string } | null>(null);
+    const [isBookingLoading, setIsBookingLoading] = useState(false);
+
+
+
+    const handleConfirmBooking = async (date: Date) => {
+        if (!selectedDoctor || !user) return;
+
+        try {
+            setIsBookingLoading(true);
+
+            // Format Date/Time for Java (YYYY-MM-DD and HH:mm)
+            const dateStr = date.toISOString().split('T')[0];
+            const timeStr = date.toTimeString().split(' ')[0].substring(0, 5);
+
+            await createAppointment({
+                patientId: user.id,
+                doctorId: selectedDoctor.id,
+                date: dateStr,
+                time: timeStr,
+                status: "PENDING"
+            });
+
+            alert("Appointment Booked Successfully!");
+            setIsModalOpen(false); // Close the modal
+
+            // Optional: Refresh the page or "UpcomingAppointments" list
+            // window.location.reload();
+
+        } catch (error) {
+            console.error("Booking failed:", error);
+            alert("Failed to book appointment.");
+        } finally {
+            setIsBookingLoading(false);
+        }
+    };
 
     // calling the endpoint for retriving the data for the last appointment
     useEffect(() => {
@@ -34,15 +74,21 @@ export default function HomePagePatient() {
         return () => ctrl.abort(); // cancel the control request if it is still running
     }, []);
     const handleRebook = (doctorId: string) => {
-        console.log("Re-booking doctor:", doctorId);
-        // Future: navigate(`/book/${doctorId}`);
+
+        setSelectedDoctor({
+            id: doctorId,
+            fullName: "the Doctor" // TODO: Update Backend DTO to send actual name!
+        });
+
+
+        setIsModalOpen(true);
     };
     return (
         <div className="min-h-screen bg-[#F4F7FF] px-4 py-8 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-6xl space-y-8">
 
                 {/* 1. WELCOME HEADER */}
-                {/* We use the user's name from context to make it feel personal */}
+
                 <header>
                     <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
                         Good morning, <span className="text-[#155EEF]">{user?.fullName || "Patient"}</span>
@@ -53,7 +99,7 @@ export default function HomePagePatient() {
                 </header>
 
                 {/* 2. THE DASHBOARD GRID */}
-                {/* This is the container that holds your widgets side-by-side */}
+
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
                     {/* LEFT COLUMN (2/3 width): Main Actions */}
@@ -97,7 +143,7 @@ export default function HomePagePatient() {
                         <UpcomingAppointments />
 
                         {isLoading ? (
-                            // Optional: A simple loading skeleton
+
                             <div className="h-40 rounded-2xl bg-slate-100 animate-pulse" />
                         ) : lastAppointment ? (
                             // If we have data, show the card
@@ -125,6 +171,14 @@ export default function HomePagePatient() {
                     </div>
                 </div>
             </div>
+            {isModalOpen && selectedDoctor && (
+                <BookingModal
+                    doctor={selectedDoctor}
+                    onClose={() => setIsModalOpen(false)}
+                    onConfirm={handleConfirmBooking}
+                    isLoading={isBookingLoading}
+                />
+            )}
         </div>
     );
 }

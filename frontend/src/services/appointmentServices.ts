@@ -20,4 +20,27 @@ export const getLastAppointment = async (signal?: AbortSignal): Promise<Appointm
     }
     return await response.json();
 }
+export type AppointmentRequestPayload = {
+    patientId: string;
+    doctorId: string;
+    date: string;
+    time: string;
+    status: string;
+};
+export default async function createAppointment(payload: AppointmentRequestPayload, signal?: AbortSignal): Promise<Appointment> {
+    const token = localStorage.getItem("token");
+    const res = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload),
+        signal: signal
+    })
+    if(!res.ok){
+        throw new Error("Failed to create appointment");
+    }
+    return await res.json();
+}
 
