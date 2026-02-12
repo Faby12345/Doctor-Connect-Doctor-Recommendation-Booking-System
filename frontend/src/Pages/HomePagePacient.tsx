@@ -7,6 +7,7 @@ import RebookCard from "../components/RebookCard.tsx";
 import BookingModal from "../components/BookingModal";
 import { getLastAppointment} from "../services/appointmentServices";
 import createAppointment from "../services/appointmentServices";
+import TopDoctorsSection from "../components/TopDoctorsSection.tsx";
 export default function HomePagePatient() {
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -88,7 +89,6 @@ export default function HomePagePatient() {
             <div className="mx-auto max-w-6xl space-y-8">
 
                 {/* 1. WELCOME HEADER */}
-
                 <header>
                     <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
                         Good morning, <span className="text-[#155EEF]">{user?.fullName || "Patient"}</span>
@@ -99,13 +99,12 @@ export default function HomePagePatient() {
                 </header>
 
                 {/* 2. THE DASHBOARD GRID */}
-
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-                    {/* LEFT COLUMN (2/3 width): Main Actions */}
-                    <div className="lg:col-span-2 space-y-6">
+                    {/* === LEFT COLUMN (2/3 width) === */}
+                    <div className="lg:col-span-2 space-y-8"> {/* Increased spacing to 8 for breathing room */}
 
-                        {/* Action Card: Find a Doctor */}
+                        {/* A. Action Card: Find a Doctor */}
                         <div className="rounded-2xl bg-white p-8 shadow-[0_2px_20px_rgba(0,0,0,0.04)] border border-slate-100">
                             <div className="max-w-xl">
                                 <h2 className="text-xl font-bold text-slate-900">
@@ -131,22 +130,36 @@ export default function HomePagePatient() {
                             </div>
                         </div>
 
+                        {/* B. TOP DOCTORS SECTION (New Addition) */}
+                        <div>
+                            <div className="flex items-center justify-between mb-4 px-1">
+                                <h2 className="text-lg font-bold text-slate-900">Top Rated Specialists</h2>
+                                <button
+                                    onClick={() => navigate("/doctors")}
+                                    className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                                >
+                                    See All
+                                </button>
+                            </div>
+                            {/* The component handles its own grid layout */}
+                            <TopDoctorsSection />
+                        </div>
+
+                        {/* C. Graph Placeholder */}
                         <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100 h-40 flex items-center justify-center text-slate-400 border-dashed">
                             Placeholder for Medical History Graph
                         </div>
                     </div>
 
 
+                    {/* === RIGHT COLUMN (1/3 width) === */}
                     <div className="space-y-6">
-
 
                         <UpcomingAppointments />
 
                         {isLoading ? (
-
                             <div className="h-40 rounded-2xl bg-slate-100 animate-pulse" />
                         ) : lastAppointment ? (
-                            // If we have data, show the card
                             <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100">
                                 <h3 className="font-semibold text-slate-900 mb-4">Quick Re-book</h3>
                                 <RebookCard
@@ -155,7 +168,6 @@ export default function HomePagePatient() {
                                 />
                             </div>
                         ) : (
-                            // If NO data (New User), show a helper message or nothing
                             <div className="rounded-2xl bg-white p-6 shadow-sm border border-slate-100 border-dashed text-center">
                                 <p className="text-sm text-slate-500">No past appointments to re-book.</p>
                             </div>
@@ -171,6 +183,8 @@ export default function HomePagePatient() {
                     </div>
                 </div>
             </div>
+
+            {/* MODAL */}
             {isModalOpen && selectedDoctor && (
                 <BookingModal
                     doctor={selectedDoctor}
