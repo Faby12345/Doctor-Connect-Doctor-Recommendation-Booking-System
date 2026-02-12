@@ -40,7 +40,8 @@ public class AppointmentsService {
                         a.getDoctorId(),
                         a.getDate(),
                         a.getTime(),
-                        a.getStatus()
+                        a.getStatus(),
+                        doctor.getFullName()
                 );
                 IncommingAppointmentsDTO incommingDTO = new IncommingAppointmentsDTO(
                         appointmentDTO,
@@ -130,12 +131,15 @@ public class AppointmentsService {
     }
     public AppointmentsDTO getAppointmentDetails(UUID id){
         Appointments app = appointmentsRepo.findById(id).orElseThrow();
+        User user = userService.findById(app.getDoctorId());
+
         return new AppointmentsDTO(
                 app.getId(),
                 app.getDoctorId(),
                 app.getDate(),
                 app.getTime(),
-                app.getStatus()
+                app.getStatus(),
+                user.getFullName()
         );
     }
     public AppointmentsDTO getLastAppointmentByPatient(UUID patientId) {
@@ -145,13 +149,15 @@ public class AppointmentsService {
 
             if(appOptional.isPresent()){
                 Appointments app = appOptional.get();
-                System.out.println("DEBUG: Found appointment: " + app.toString());
+                User user = userService.findById(app.getDoctorId());
                 return new AppointmentsDTO(
                         app.getId(),
                         app.getDoctorId(),
                         app.getDate(),
                         app.getTime(),
-                        app.getStatus()
+                        app.getStatus(),
+                        user.getFullName()
+
                 );
             } else {
                 // explicit handle the not found case

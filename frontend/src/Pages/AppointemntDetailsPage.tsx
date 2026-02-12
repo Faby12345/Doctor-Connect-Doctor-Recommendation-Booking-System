@@ -6,10 +6,10 @@ import {useParams} from "react-router-dom";
 export interface AppointmentDetails {
     id: string;
     doctorId: string;
-
     date: string;
     time: string;
     status: string;
+    doctorName: string;
 }
 
 
@@ -91,55 +91,58 @@ export default function AppointmentDetailsPage() {
 
 
     return (
-        <div className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all">
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+            <div className="mx-auto max-w-2xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all">
 
-            {/* Header Section */}
-            <div className="border-b border-slate-100 bg-slate-50/50 px-8 py-6">
-                <div className="flex items-start justify-between">
-                    <div>
-                        <h2 className="text-xl font-bold text-slate-900">Appointment Details</h2>
-                        <p className="mt-1 text-sm font-medium text-slate-500">ID: {appointment.id}</p>
-                    </div>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${getStatusStyles(appointment.status)}`}>
+                {/* Header Section */}
+                <div className="border-b border-slate-100 bg-slate-50/50 px-8 py-6">
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900">Appointment Details</h2>
+                            <p className="mt-1 text-sm font-medium text-slate-500">ID: {appointment.id}</p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${getStatusStyles(appointment.status)}`}>
                         {appointment.status}
                     </span>
+                    </div>
                 </div>
-            </div>
 
-            {/* Content Grid */}
-            <div className="grid grid-cols-1 gap-6 p-8 sm:grid-cols-2">
+                {/* Content Grid */}
+                <div className="grid grid-cols-1 gap-6 p-8 sm:grid-cols-2">
 
-                {/* Date & Time Block */}
-                <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                    <div className="flex items-center gap-3 mb-2">
-                        {/* Calendar Icon */}
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm text-indigo-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-                            </svg>
+                    {/* Date & Time Block */}
+                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                        <div className="flex items-center gap-3 mb-2">
+                            {/* Calendar Icon */}
+                            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm text-indigo-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                </svg>
+                            </div>
+                            <span className="text-sm font-semibold text-slate-900">Date & Time</span>
                         </div>
-                        <span className="text-sm font-semibold text-slate-900">Date & Time</span>
-                    </div>
-                    <div className="pl-11">
-                        <div className="text-lg font-bold text-slate-800">{appointment.date}</div>
-                        <div className="text-sm text-slate-500">{appointment.time}</div>
-                    </div>
-                </div>
-
-                {/* Participants Block */}
-                <div className="space-y-4">
-                    <div>
-                        <span className="block text-xs font-semibold uppercase tracking-wider text-slate-400">Doctor ID</span>
-                        <div className="mt-1 font-mono text-sm text-slate-700 break-all bg-slate-50 p-2 rounded border border-slate-100">
-                            {appointment.doctorId}
+                        <div className="pl-11">
+                            <div className="text-lg font-bold text-slate-800">{appointment.date}</div>
+                            <div className="text-sm text-slate-500">{appointment.time}</div>
                         </div>
                     </div>
 
+                    {/* Participants Block */}
+                    <div className="space-y-4">
+                        <div>
+                            <span className="block text-xs font-semibold uppercase tracking-wider text-slate-400">Doctor Name</span>
+                            <div className="mt-1 font-mono text-sm text-slate-700 break-all bg-slate-50 p-2 rounded border border-slate-100">
+                                {appointment.doctorName}
+                            </div>
+                        </div>
 
+
+                    </div>
                 </div>
+
+
             </div>
-
-
         </div>
+
     );
 }

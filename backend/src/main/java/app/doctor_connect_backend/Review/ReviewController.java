@@ -28,9 +28,9 @@ public class ReviewController {
             @AuthenticationPrincipal UserPrincipal me,
             @RequestBody ReviewCreateDTO dto) {
 
-        Review saved = reviewService.save(dto, me.id());
+        ReviewResponseDTO saved = reviewService.save(dto, me.id());
 
-        return new ResponseEntity<>(new ReviewResponseDTO(saved), HttpStatus.CREATED);
+        return new ResponseEntity<>(saved, HttpStatus.CREATED);
     }
 
     @GetMapping("/doctor/{id}")
