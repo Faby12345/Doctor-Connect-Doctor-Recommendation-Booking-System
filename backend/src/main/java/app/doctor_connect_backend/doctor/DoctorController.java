@@ -80,5 +80,12 @@ public class DoctorController {
             return ResponseEntity.badRequest().build();
         }
     }
+    @GetMapping("/get-top-3-doctors")
+    public ResponseEntity<List<DoctorDTO>> getTop3DoctorsByRating(){
+        List<DoctorDTO> topDoctors = doctorService.GetTop3RatingDoctors();
+        return ResponseEntity.ok(topDoctors);
+
+    }
+
 
 }
