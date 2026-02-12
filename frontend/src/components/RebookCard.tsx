@@ -7,6 +7,7 @@ export interface Appointment {
     date: string;
     time: string;
     status: string;
+    doctorName: string;
     // TODO 'doctorName?: string;' here later when you update the Backend!
 }
 
@@ -35,7 +36,7 @@ export default function RebookCard({ appointment, onRebook }: RebookCardProps) {
             <div className="mb-5">
                 <h3 className="font-bold text-slate-900 text-lg">
                     {/* Fallback to ID until backend sends name */}
-                    Dr. {appointment.doctorId}
+                     {appointment.doctorName}
                 </h3>
                 <p className="text-sm text-slate-500">
                     General Practitioner

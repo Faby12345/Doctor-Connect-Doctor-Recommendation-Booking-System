@@ -2,14 +2,15 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../Authentification Context/AuthContext.tsx";
 import StarRating from "./StarRating.tsx";
 
-type Review = {
-  id: string;
-  patientId: string;
+export type Review = {
   appointmentId: string;
+  patientId: string;
   doctorId: string;
   rating: number;
   comment: string;
-  createdAt: string;
+  createdAt: string; // Matches Java's Instant.now() (ISO 8601 String)
+  patientName: string;
+  doctorName: string;
 };
 
 type ReviewsDoctorViewProps = {
@@ -98,15 +99,14 @@ export default function ReviewsDoctorView({ id }: ReviewsDoctorViewProps) {
 
       {items.map((a) => (
         <div
-          key={a.id}
+          key={a.appointmentId}
           className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm"
         >
           <div className="flex justify-between gap-3">
             <div>
-              <div className="mt-1 text-sm text-gray-600">
-                Patient ID: {a.patientId}
+              <div className="mt-1 text-gray-600 text-sm">
+                Patient name: <span className=" text-xl font-bold text-gray-900">{a.patientName}</span>
               </div>
-
               <div className="mt-2">
                 <StarRating rating={a.rating} />
               </div>

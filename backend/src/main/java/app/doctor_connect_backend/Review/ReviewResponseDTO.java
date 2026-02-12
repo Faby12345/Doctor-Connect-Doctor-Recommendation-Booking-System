@@ -4,18 +4,16 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record ReviewResponseDTO(
-        UUID id,
-        UUID patientId,
         UUID appointmentId,
+        UUID patientId,
         UUID doctorId,
         int rating,
         String comment,
-        Instant createdAt
+        Instant createdAt,
+        String patientName,
+        String doctorName
 ) {
-    public ReviewResponseDTO(Review r) {
-        this(r.getId(),r.getPatientId(), r.getAppointmentId(), r.getDoctorId(),
-                r.getRating(), r.getComment(), r.getCreatedAt());
-    }
+
 }
 
 
