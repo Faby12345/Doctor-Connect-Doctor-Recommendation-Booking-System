@@ -27,6 +27,7 @@ export type AppointmentRequestPayload = {
     time: string;
     status: string;
 };
+
 export default async function createAppointment(payload: AppointmentRequestPayload, signal?: AbortSignal): Promise<Appointment> {
     const token = localStorage.getItem("token");
     const res = await fetch(API_URL, {
@@ -43,4 +44,11 @@ export default async function createAppointment(payload: AppointmentRequestPaylo
     }
     return await res.json();
 }
+
+// export type TopNDoctors = {
+//     numberOfDoctors: number;
+// }
+// export default async function getTopDoctorsByRating(payload: TopNDoctors, signal?: AbortSignal){
+//
+// }
 

@@ -16,3 +16,8 @@ Content-Type: application/json
 ### Get Last Completed Appointment (Uses the saved token)
 GET http://localhost:8080/api/appointments/last-completed
 Authorization: Bearer {{auth_token}}
+
+###  Get Top 3 Doctors (Uses the saved token)
+GET http://localhost:8080/api/doctor/get-top-3-doctors
+Authorization: Bearer {{auth_token}}
+Content-Type: application/json

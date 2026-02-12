@@ -111,7 +111,7 @@ export default function PatientProfile() {
                                 ) : (
                                     <>
                                         <h1 className="text-2xl font-bold text-slate-800 mb-1">
-                                            Bine ai venit, {user?.fullName}
+                                            Welcome, {user?.fullName}
                                         </h1>
                                         <p className="text-slate-500">
                                             <span className="inline-flex items-center gap-2">
@@ -138,7 +138,7 @@ export default function PatientProfile() {
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                         </svg>
-                                        Editează
+                                        Edit
                                     </button>
                                 )}
                                 <button
@@ -148,7 +148,7 @@ export default function PatientProfile() {
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                                     </svg>
-                                    Deconectare
+                                    Logout
                                 </button>
                             </div>
                         </div>
@@ -161,7 +161,7 @@ export default function PatientProfile() {
                         <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        Programările tale
+                        Your Appointments
                     </h2>
                     <UserAppointments />
                 </div>

@@ -165,7 +165,7 @@ export default function UserAppointments() {
 
   return (
     <div className="grid gap-3">
-      <div className="text-lg font-bold">Your Appointments</div>
+
 
       {items.map((a) => {
         const iso = `${a.date}T${a.time.length === 5 ? a.time + ":00" : a.time}`;
