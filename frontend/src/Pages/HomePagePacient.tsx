@@ -8,6 +8,7 @@ import BookingModal from "../components/BookingModal";
 import { getLastAppointment} from "../services/appointmentServices";
 import createAppointment from "../services/appointmentServices";
 import TopDoctorsSection from "../components/TopDoctorsSection.tsx";
+import DailyHealthTip from "../components/DailyHealthTip.tsx";
 export default function HomePagePatient() {
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -156,6 +157,7 @@ export default function HomePagePatient() {
                     <div className="space-y-6">
 
                         <UpcomingAppointments />
+                        <DailyHealthTip />
 
                         {isLoading ? (
                             <div className="h-40 rounded-2xl bg-slate-100 animate-pulse" />
