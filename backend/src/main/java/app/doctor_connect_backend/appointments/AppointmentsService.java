@@ -9,6 +9,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AppointmentsService {
@@ -165,9 +166,43 @@ public class AppointmentsService {
                 throw new RuntimeException("No appointments found for this patient");
             }
 
+    }
 
+    public List<AppointmentsDTO> getHistoryAppointments(UUID patientId){
+        List<Appointments> completedAppointments = appointmentsRepo.findAllByPatientIdAndStatus(patientId, AppointmentsStatus.COMPLETED.toString());
+        if(completedAppointments.isEmpty()){
+            return List.of();
+        }
 
+        //storing all the doctorsId uniquely
+        Set<UUID> doctorIds = completedAppointments
+                .stream()
+                .map(Appointments::getDoctorId)
+                .collect(Collectors.toSet());
 
+        // get all the doctors (users)
+        List<User> doctors = userService.findAllById(doctorIds);
+
+        //a map for id -> user to not use the DB ofr every user
+        Map<UUID, User> doctorMap = doctors.stream()
+                .collect(Collectors.toMap(User::getId, doctor -> doctor));
+
+        // Convert using the map
+        return completedAppointments.stream()
+                .map(appointment -> {
+                    User doctor = doctorMap.get(appointment.getDoctorId());
+                    String doctorName = (doctor != null) ? doctor.getFullName() : "Unknown Doctor";
+
+                    return new AppointmentsDTO(
+                            appointment.getId(),
+                            appointment.getDoctorId(),
+                            appointment.getDate(),
+                            appointment.getTime(),
+                            appointment.getStatus(),
+                            doctorName
+                    );
+                })
+                .collect(Collectors.toList());
 
     }
 

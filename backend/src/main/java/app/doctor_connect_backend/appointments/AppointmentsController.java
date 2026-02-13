@@ -109,4 +109,5 @@ public class AppointmentsController {
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
+
 }
