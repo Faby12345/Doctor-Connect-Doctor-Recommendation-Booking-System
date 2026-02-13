@@ -26,6 +26,7 @@ public class DoctorController {
         return doctorService.findAll();
     }
 
+    // TODO move the logic from the controller to service + add auth injection
     @GetMapping("/{id}")
     public ResponseEntity<DoctorDTO> getDoctorById(@PathVariable String id) {
         try {
@@ -40,6 +41,8 @@ public class DoctorController {
         }
 
     }
+
+    // TODO move the logic from the controller to service + add auth injection
 
     @PutMapping("/profile")
     public ResponseEntity<DoctorDTO> updateProfile(@RequestBody DoctorUpdateDTO dto) {

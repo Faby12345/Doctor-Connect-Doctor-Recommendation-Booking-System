@@ -5,6 +5,8 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -74,5 +76,8 @@ public class UserService {
         }
 
         return Objects.requireNonNull(userRepository.save(user));
+    }
+    public List<User> findAllById(Collection<UUID> ids){
+        return userRepository.findAllById(ids);
     }
 }

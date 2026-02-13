@@ -109,4 +109,10 @@ public class AppointmentsController {
             return ResponseEntity.status(404).body(e.getMessage());
         }
     }
+    @GetMapping("/history")
+    public ResponseEntity<List<AppointmentsDTO>> getHistory(@AuthenticationPrincipal UserPrincipal me) {
+        List<AppointmentsDTO> historyAppDTO = appointmentsService.getHistoryAppointments(me.id());
+        return ResponseEntity.ok(historyAppDTO);
+    }
+
 }
