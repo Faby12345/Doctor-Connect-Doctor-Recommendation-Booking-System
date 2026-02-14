@@ -1,6 +1,6 @@
 import type {Appointment} from "../components/RebookCard.tsx";
 const API_URL = "http://localhost:8080/api/appointments";
-
+import type {AppointmentRequestPayload} from "../Types/Appointment.ts";
 export const getLastAppointment = async (signal?: AbortSignal): Promise<Appointment | null> => {
     const token = localStorage.getItem("token");
 
@@ -20,13 +20,7 @@ export const getLastAppointment = async (signal?: AbortSignal): Promise<Appointm
     }
     return await response.json();
 }
-export type AppointmentRequestPayload = {
-    patientId: string;
-    doctorId: string;
-    date: string;
-    time: string;
-    status: string;
-};
+
 
 export default async function createAppointment(payload: AppointmentRequestPayload, signal?: AbortSignal): Promise<Appointment> {
     const token = localStorage.getItem("token");
