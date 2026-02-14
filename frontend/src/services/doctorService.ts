@@ -1,15 +1,4 @@
-export type Doctor = {
-    id: string;
-    fullName: string;
-    speciality: string;
-    bio: string;
-    city: string;
-    priceMinCents: number;
-    priceMaxCents: number;
-    verified: boolean;
-    ratingAvg: number;
-    ratingCount: number;
-}
+import type {Doctor} from "../Types/Doctor.ts";
 const API_BASE_URL = "http://localhost:8080/api";
 export const getTopRatedDoctors = async (): Promise<Doctor[]> => {
     // Get the token (Adjust this key if you use a different one, e.g., "user_token")
