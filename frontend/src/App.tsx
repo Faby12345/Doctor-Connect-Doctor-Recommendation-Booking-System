@@ -4,6 +4,7 @@ import { VscHome, VscArchive, VscAccount, VscSettingsGear } from "react-icons/vs
 // Pages
 import LoginPage from "./Pages/login.tsx";
 import RegisterPage from "./Pages/register";
+import AppointmentsHistoryPage from "./Pages/AppointmentsHistoryPage.tsx";
 // import MainPage from "./Pages/MainPage"; // <-- Removing this if HomePagePatient replaces it
 import DoctorsPage from "./Pages/DoctorsPage";
 import DoctorProfileRoute from "./Pages/DoctorProfile/DoctorProfileRoute";
@@ -116,10 +117,7 @@ export default function App() {
           ) : (
               /* === AUTHENTICATED ROUTES (Logged In) === */
               <>
-                {/* MENTOR TIP: Dynamic Home Page
-               If the user is a Patient, "/" shows HomePagePatient.
-               If they are a Doctor, you might want to show a DoctorDashboard later.
-            */}
+
                 <Route
                     path="/"
                     element={
@@ -135,7 +133,7 @@ export default function App() {
                 <Route path="/doctors" element={<DoctorsPage />} />
                 <Route path="/doctor/:id" element={<DoctorProfileRoute />} />
                 <Route path="/me" element={<MePage />} />
-
+                <Route path = "/appointments/history" element={<AppointmentsHistoryPage/>}/>
                 {/* Catch-all: Redirect unknown auth URLs to Home */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </>

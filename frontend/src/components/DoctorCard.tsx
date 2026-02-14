@@ -1,7 +1,7 @@
 export type Doctor = {
   id: string;
   fullName: string;
-  specialty: string;
+  speciality: string;
   city: string;
   priceMinCents: number;
   priceMaxCents: number;
@@ -26,7 +26,7 @@ export default function DoctorCard({
   return (
     <div
       role="article"
-      aria-label={`${d.fullName} ${d.specialty}`}
+      aria-label={`${d.fullName} ${d.speciality}`}
       className="
         border border-slate-200 rounded-xl bg-white
         p-6 flex flex-col h-full
@@ -46,7 +46,7 @@ export default function DoctorCard({
           <span className="block absolute left-0 -bottom-1 w-6 h-[2px] bg-blue-600/30 rounded"></span>
         </strong>
 
-        <span className="text-slate-500 text-sm">({d.specialty})</span>
+        <span className="text-slate-500 text-sm">({d.speciality})</span>
 
         {d.verified && (
           <span
