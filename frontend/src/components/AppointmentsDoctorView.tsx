@@ -3,11 +3,12 @@ import { useAuth } from "../Authentification Context/AuthContext.tsx";
 
 type Appointment = {
   id: string;
-  patientId: string;
   doctorId: string;
+  patientId: string;
   date: string;
   time: string;
   status: string;
+  doctorName: string;
 };
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";

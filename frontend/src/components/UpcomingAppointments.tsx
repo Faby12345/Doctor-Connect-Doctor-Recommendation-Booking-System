@@ -2,28 +2,12 @@ import { useEffect, useState, useMemo } from "react";
 import { differenceInSeconds, isAfter } from "date-fns";
 import { useAuth } from "../Authentification Context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import type {AppointmentsDTO} from "../Types/Appointment.ts";
 
-// 1. MATCHING JAVA DATA SHAPE
-// Based on your controller returning "List<Appointments>"
-// Check your browser Network tab response to verify if 'doctor' is nested!
-// 1. Mirror the inner AppointmentsDTO
-export interface AppointmentDetails {
-    id: string;
-    doctorId: string;
-    date: string;
-    time: string;
-    status: string;
-}
-
-// 2. Mirror the wrapper IncommingAppointmentsDTO
-export interface IncomingAppointmentResponse {
-    appointment: AppointmentDetails;
-    doctorName: string;
-}
 
 export default function UpcomingAppointments() {
     const { user } = useAuth();
-    const [appointments, setAppointments] = useState<IncomingAppointmentResponse[]>([]);
+    const [appointments, setAppointments] = useState<AppointmentsDTO[]>([]);
     const [loading, setLoading] = useState(true);
 
     const [now, setNow] = useState(new Date());
@@ -86,14 +70,14 @@ export default function UpcomingAppointments() {
         const upcoming = appointments
             .map((appt) => {
 
-                if (!appt || !appt.appointment) {
+                if (!appt) {
                     console.warn("Found malformed appointment data:", appt);
                     return null;
                 }
 
                 return {
                     ...appt,
-                    dateObj: new Date(`${appt.appointment.date}T${appt.appointment.time}:00`),
+                    dateObj: new Date(`${appt.date}T${appt.time}:00`),
                 };
             })
             // Filter: Remove the nulls we just created + logic
@@ -102,7 +86,7 @@ export default function UpcomingAppointments() {
 
                 // Now safely filter by status and time
                 return (
-                    item.appointment.status !== "CANCELLED" &&
+                    item.status !== "CANCELED" &&
                     isAfter(item.dateObj, now)
                 );
             })
@@ -151,7 +135,7 @@ export default function UpcomingAppointments() {
 
 
     const { doctorName } = nextAppointment; // Extract from wrapper
-    const { date, time } = nextAppointment.appointment; // Extract from inner details
+    const { date, time } = nextAppointment// Extract from inner details
 
     return (
         <div className="rounded-2xl border border-[#C9DBFF] bg-[#F3F7FF] p-6 shadow-sm transition-all hover:shadow-md">
@@ -180,7 +164,7 @@ export default function UpcomingAppointments() {
                 <div className="text-sm text-slate-500">
                     <button
                         onClick={() => {
-                            navigate(`/appointment-details/${nextAppointment?.appointment.id}`);
+                            navigate(`/appointment-details/${nextAppointment?.id}`);
 
                         }}
                         className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-indigo-700 transition-colors bg-indigo-50 rounded-lg hover:bg-indigo-100 hover:text-indigo-800"

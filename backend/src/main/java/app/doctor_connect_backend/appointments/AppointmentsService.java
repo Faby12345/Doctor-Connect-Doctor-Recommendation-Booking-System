@@ -1,5 +1,7 @@
 package app.doctor_connect_backend.appointments;
 
+import app.doctor_connect_backend.common.exception.ResourceNotFoundException;
+import app.doctor_connect_backend.common.exception.UserNotAuthorizedException;
 import app.doctor_connect_backend.doctor.Doctor;
 import app.doctor_connect_backend.doctor.DoctorService;
 import app.doctor_connect_backend.user.Roles;
@@ -8,6 +10,7 @@ import app.doctor_connect_backend.user.UserService;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
+import javax.print.DocFlavor;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -20,17 +23,51 @@ public class AppointmentsService {
         this.userService = userService;
     }
 
-    @SuppressWarnings("null")
-    public @NonNull Appointments save(Appointments appointments) {
-        return Objects.requireNonNull(appointmentsRepo.save(appointments));
+
+
+
+    public List<AppointmentsDTO> GetAllAppointmentsDoctor(UUID doctorId, UUID callerId) {
+        verifyDataOwnership(callerId, doctorId);
+        List<Appointments> appointments = appointmentsRepo.findAllByDoctorId(doctorId);
+
+        User doctor = userService.findById(doctorId);
+
+
+        List<AppointmentsDTO> appointmentsDTO = new ArrayList<>();
+        for(Appointments a : appointments){
+            appointmentsDTO.add(new AppointmentsDTO(
+                    a.getId(), a.getDoctorId(), a.getPatientId(),
+                    a.getDate(), a.getTime(), a.getStatus(), doctor.getFullName()));
+        }
+
+        /** A map for retriving the name of the doctor to convert it from entity to DTO */
+
+
+
+        return appointmentsDTO;
     }
 
-    public List<Appointments> GetAllAppointmentsDoctor(UUID doctorId) {
-        return appointmentsRepo.findAllByDoctorId(doctorId).stream().toList();
+    /**
+     * for preventing userA access the data of userB (which is not authorized)
+     * BUT the doctor the appointment CAN view it
+     * */
+    public void verifyDataOwnership(UUID callerId, UUID ownerId, UUID doctorId) {
+        boolean isDoctor = doctorId.equals(callerId);
+        boolean isPacient = ownerId.equals(callerId);
+        if (!isDoctor && !isPacient) {
+            throw new UserNotAuthorizedException("You are not authorized to perform this action");
+        }
     }
-    public List<IncommingAppointmentsDTO> GetAllIncomingAppointmentsPatient(UUID patientId){
+    public void verifyDataOwnership(UUID callerId, UUID ownerId) {
+        boolean isOwner = ownerId.equals(callerId);
+        if (!isOwner) {
+            throw new UserNotAuthorizedException("You are not authorized to perform this action");
+        }
+    }
+    public List<AppointmentsDTO> GetAllIncomingAppointmentsPatient(UUID patientId){
         List<Appointments> appointments = appointmentsRepo.findAllByPatientId(patientId);
-        List<IncommingAppointmentsDTO> incommingAppointments = new ArrayList<>();
+        List<AppointmentsDTO> appointmentsDTO = new ArrayList<>();
+
         for(Appointments a : appointments){
             if(a.getStatus().equals(AppointmentsStatus.CONFIRMED.toString())) {
 
@@ -39,20 +76,18 @@ public class AppointmentsService {
                 AppointmentsDTO appointmentDTO = new AppointmentsDTO(
                         a.getId(),
                         a.getDoctorId(),
+                        patientId,
                         a.getDate(),
                         a.getTime(),
                         a.getStatus(),
                         doctor.getFullName()
                 );
-                IncommingAppointmentsDTO incommingDTO = new IncommingAppointmentsDTO(
-                        appointmentDTO,
-                        doctor.getFullName()
-                );
-                incommingAppointments.add(incommingDTO);
+                appointmentsDTO.add(appointmentDTO);
+
             }
         }
 
-        return incommingAppointments;
+        return appointmentsDTO;
     }
 
     public List<Appointments> GetAllAppointmentsPatient(UUID patientId) {
@@ -97,10 +132,10 @@ public class AppointmentsService {
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         if(!role.equals(Roles.DOCTOR.toString())){
-            throw new RuntimeException("You are not authorized to cancel this appointment");
+            throw new UserNotAuthorizedException("You are not authorized to cancel this appointment");
         }
         if (!app.getDoctorId().equals(callerId)) {
-            throw new RuntimeException("You are not authorized to cancel this appointment");
+            throw new UserNotAuthorizedException("You are not authorized to cancel this appointment");
         }
 
         app.setStatus(AppointmentsStatus.REJECTED.toString());
@@ -111,10 +146,10 @@ public class AppointmentsService {
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
         if(!role.equals(Roles.DOCTOR.toString())){
-            throw new RuntimeException("You are not authorized to cancel this appointment");
+            throw new UserNotAuthorizedException("You are not authorized to cancel this appointment");
         }
         if (!app.getDoctorId().equals(callerId)) {
-            throw new RuntimeException("You are not authorized to cancel this appointment");
+            throw new UserNotAuthorizedException("You are not authorized to cancel this appointment");
         }
 
         app.setStatus(AppointmentsStatus.COMPLETED.toString());
@@ -130,19 +165,27 @@ public class AppointmentsService {
         app.setStatus(AppointmentsStatus.PENDING.toString());
         return appointmentsRepo.save(app);
     }
-    public AppointmentsDTO getAppointmentDetails(UUID id){
-        Appointments app = appointmentsRepo.findById(id).orElseThrow();
-        User user = userService.findById(app.getDoctorId());
 
+    public AppointmentsDTO getAppointmentDetails(UUID id, UUID callerId){
+        Appointments app = appointmentsRepo.findById(id)
+                .orElseThrow (() -> new ResourceNotFoundException("Appointment with id: " +  id + " not found"));
+
+
+        // if the caller is the doctor, we let him view it and verify if pacientA is accesing pacientB data
+        verifyDataOwnership(callerId, app.getPatientId(), app.getDoctorId());
+
+        User user = userService.findById(app.getDoctorId());
         return new AppointmentsDTO(
                 app.getId(),
                 app.getDoctorId(),
+                app.getPatientId(),
                 app.getDate(),
                 app.getTime(),
                 app.getStatus(),
                 user.getFullName()
         );
     }
+
     public AppointmentsDTO getLastAppointmentByPatient(UUID patientId) {
 
             // optional handels the null excetion
@@ -154,6 +197,7 @@ public class AppointmentsService {
                 return new AppointmentsDTO(
                         app.getId(),
                         app.getDoctorId(),
+                        app.getPatientId(),
                         app.getDate(),
                         app.getTime(),
                         app.getStatus(),
@@ -196,6 +240,7 @@ public class AppointmentsService {
                     return new AppointmentsDTO(
                             appointment.getId(),
                             appointment.getDoctorId(),
+                            appointment.getPatientId(),
                             appointment.getDate(),
                             appointment.getTime(),
                             appointment.getStatus(),

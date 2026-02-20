@@ -122,7 +122,7 @@ export default function HomePagePatient() {
                                         Find a Doctor
                                     </button>
                                     <button
-                                        onClick={() => navigate("/my-history")}
+                                        onClick={() => navigate("/appointments/history")}
                                         className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
                                     >
                                         View History

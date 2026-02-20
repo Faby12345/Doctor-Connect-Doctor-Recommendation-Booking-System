@@ -1,15 +1,20 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import DoctorCard from "../components/DoctorCard";
 import useDebounce from "../hooks/useDebounce";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../Authentification Context/AuthContext";
 import BookingModal from "../components/BookingModal";
 import { format } from "date-fns";
+// Icons (assuming you use react-icons or similar, using SVG for no-dependency copy-paste)
+const SearchIcon = () => <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>;
+const PinIcon = () => <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>;
+const ChevronDown = () => <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>;
 
 export type DoctorRow = {
   id: string;
   fullName: string;
-  specialty: string;
+  speciality: string;
+  bio: string;
   city: string;
   priceMinCents: number;
   priceMaxCents: number;
@@ -30,15 +35,20 @@ export default function DoctorsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // --- Filter States ---
   const [specialty, setSpecialty] = useState("");
   const [city, setCity] = useState("");
   const [minPrice, setMinPrice] = useState<number | "">("");
   const [maxPrice, setMaxPrice] = useState<number | "">("");
   const [onlyVerified, setOnlyVerified] = useState(false);
-  const [sort, setSort] = useState<
-    "relevance" | "rating" | "priceAsc" | "priceDesc"
-  >("relevance");
+  const [sort, setSort] = useState<"relevance" | "rating" | "priceAsc" | "priceDesc">("relevance");
 
+  // UI State for Dropdowns (The "Airbnb" Popovers)
+  const [activePopup, setActivePopup] = useState<null | "price" | "sort"> (null);
+  const priceMenuRef = useRef<HTMLDivElement>(null);
+  const sortMenuRef = useRef<HTMLDivElement>(null);
+
+  // --- Debouncing ---
   const debSpecialty = useDebounce(specialty, 200);
   const debCity = useDebounce(city, 200);
   const debMin = useDebounce(minPrice, 200);
@@ -46,15 +56,28 @@ export default function DoctorsPage() {
   const debVerified = useDebounce(onlyVerified, 100);
   const debSort = useDebounce(sort, 100);
 
+  // --- Data Loading ---
   const [rows, setRows] = useState<DoctorRow[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [bookingState, setBookingState] = useState<
-    null | "loading" | "success" | "error"
-  >(null);
+  const [bookingState, setBookingState] = useState<null | "loading" | "success" | "error">(null);
   const [, setBookingError] = useState<string | null>(null);
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorRow | null>(null);
+
+  // Close popups when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (activePopup === "price" && priceMenuRef.current && !priceMenuRef.current.contains(event.target as Node)) {
+        setActivePopup(null);
+      }
+      if (activePopup === "sort" && sortMenuRef.current && !sortMenuRef.current.contains(event.target as Node)) {
+        setActivePopup(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [activePopup]);
 
   useEffect(() => {
     (async () => {
@@ -70,7 +93,7 @@ export default function DoctorsPage() {
         setRows(data);
       } catch (e: unknown) {
         if (e instanceof Error) {
-          setError(e.message);
+          if (e.name !== "AbortError") setError(e.message);
         } else {
           setError("Failed to load data");
         }
@@ -89,8 +112,12 @@ export default function DoctorsPage() {
     const min = debMin === "" ? null : Number(debMin);
     const max = debMax === "" ? null : Number(debMax);
 
-    if (spec) list = list.filter((d) => d.specialty.toLowerCase().includes(spec));
-    if (cty) list = list.filter((d) => d.city.toLowerCase().includes(cty));
+    // FIX 1: Add (d.specialty || "") to prevent crash if data is null
+    if (spec) list = list.filter((d) => (d.speciality || "").toLowerCase().includes(spec));
+
+    // FIX 1: Add (d.city || "") here too
+    if (cty) list = list.filter((d) => (d.city || "").toLowerCase().includes(cty));
+
     if (min !== null) list = list.filter((d) => d.priceMinCents >= min * 100);
     if (max !== null) list = list.filter((d) => d.priceMaxCents <= max * 100);
     if (debVerified) list = list.filter((d) => d.verified);
@@ -98,7 +125,7 @@ export default function DoctorsPage() {
     const copy = [...list];
     switch (debSort) {
       case "rating":
-        copy.sort((a, b) => b.ratingAvg - a.ratingAvg);
+        copy.sort((a, b) => (b.ratingAvg || 0) - (a.ratingAvg || 0)); // Safety check for ratings too
         break;
       case "priceAsc":
         copy.sort((a, b) => a.priceMinCents - b.priceMinCents);
@@ -124,7 +151,6 @@ export default function DoctorsPage() {
 
   async function handleConfirmBooking(dateObj: Date) {
     if (!selectedDoctor || !user) return;
-
     const dateStr = format(dateObj, "yyyy-MM-dd");
     const timeStr = format(dateObj, "HH:mm");
 
@@ -147,7 +173,6 @@ export default function DoctorsPage() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-
         body: JSON.stringify(payload),
       });
 
@@ -166,170 +191,221 @@ export default function DoctorsPage() {
     }
   }
 
+  const hasPriceFilter = minPrice !== "" || maxPrice !== "";
+
   return (
-    <div className="min-h-screen bg-white py-7 pb-27 px-4 sm:px-6 lg:px-10">
-      <div className="mx-auto max-w-6xl space-y-10">
+      <div className="min-h-screen bg-white">
 
-        {/* HERO */}
-        <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-r from-[#F4F7FF] via-white to-[#F4F7FF] px-6 py-10 sm:px-8 sm:py-12 lg:px-10 lg:py-16 shadow-[0_18px_50px_rgba(0,0,0,0.08)]">
-
-          {/* Soft glows */}
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute -top-24 -right-10 h-72 w-72 rounded-full bg-[#155EEF20] blur-3xl" />
-            <div className="absolute -bottom-32 -left-10 h-64 w-64 rounded-full bg-emerald-200/40 blur-3xl" />
+        {/* 1. CLEAN HERO SECTION */}
+        <div className="bg-[#F4F7FF] pt-12 pb-8 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
+          <div className="mx-auto max-w-6xl">
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">
+              Find a Specialist
+            </h1>
+            <p className="mt-2 text-lg text-slate-600 max-w-2xl">
+              Book verified doctors near you. Instant confirmation.
+            </p>
           </div>
-
-          <div className="relative grid gap-10 lg:grid-cols-[1.4fr,1.3fr] items-center">
-
-            {/* HERO TEXT */}
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#155EEF20] bg-[#155EEF08] px-3 py-1 text-xs font-medium text-[#155EEF] shadow-sm">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 inline-block" />
-                Book trusted specialists in minutes
-              </div>
-
-              <div className="space-y-3">
-                <h1 className="text-[clamp(2.2rem,3vw,3rem)] font-extrabold leading-tight tracking-tight text-slate-900">
-                  Find the right doctor,
-                  <span className="text-[#155EEF]"> right now.</span>
-                </h1>
-                <p className="max-w-xl text-sm sm:text-base text-slate-600">
-                  Use our advanced search tools to quickly find verified specialists based on specialty, city, ratings, and price.
-                </p>
-              </div>
-            </div>
-
-            {/* FILTERS CARD — LIGHT BLUE */}
-            <div
-              className="
-                rounded-2xl border border-[#C9DBFF]
-                bg-[#F3F7FF]
-                px-5 py-6
-                shadow-[0_10px_35px_rgba(0,0,0,0.06)]
-                grid grid-cols-1 gap-3
-                md:grid-cols-2
-              "
-            >
-              {/* Specialty */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-slate-700">Specialty</label>
-                <input
-                  className="w-full rounded-xl border border-[#C9D8FF] bg-white px-3 py-2.5 text-sm shadow-sm outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF25]"
-                  value={specialty}
-                  onChange={(e) => setSpecialty(e.target.value)}
-                  placeholder="Dermatology, Cardiology..."
-                />
-              </div>
-
-              {/* City */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-slate-700">City</label>
-                <input
-                  className="w-full rounded-xl border border-[#C9D8FF] bg-white px-3 py-2.5 text-sm shadow-sm outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF25]"
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  placeholder="Bucharest, Cluj..."
-                />
-              </div>
-
-              {/* Min Price */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-slate-700">Min Price</label>
-                <input
-                  type="number"
-                  className="w-full rounded-xl border border-[#C9D8FF] bg-white px-3 py-2.5 text-sm shadow-sm outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF25]"
-                  value={minPrice}
-                  onChange={(e) =>
-                    setMinPrice(e.target.value === "" ? "" : Number(e.target.value))
-                  }
-                />
-              </div>
-
-              {/* Max Price */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-slate-700">Max Price</label>
-                <input
-                  type="number"
-                  className="w-full rounded-xl border border-[#C9D8FF] bg-white px-3 py-2.5 text-sm shadow-sm outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF25]"
-                  value={maxPrice}
-                  onChange={(e) =>
-                    setMaxPrice(e.target.value === "" ? "" : Number(e.target.value))
-                  }
-                />
-              </div>
-
-              {/* Verified */}
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={onlyVerified}
-                  onChange={(e) => setOnlyVerified(e.target.checked)}
-                  className="h-4 w-4 rounded border-slate-300 text-[#155EEF] focus:ring-[#155EEF]"
-                />
-                <label className="text-xs text-slate-700">
-                  Verified doctors only
-                </label>
-              </div>
-
-              {/* Sort */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs text-slate-700">Sort By</label>
-                <select
-                  className="w-full rounded-xl border border-[#C9D8FF] bg-white px-3 py-2.5 text-sm shadow-sm outline-none focus:border-[#155EEF] focus:ring-4 focus:ring-[#155EEF25]"
-                  value={sort}
-                  onChange={(e) => setSort(e.target.value as any)}
-                >
-                  <option value="relevance">Relevance</option>
-                  <option value="rating">Highest Rated</option>
-                  <option value="priceAsc">Price: Low to High</option>
-                  <option value="priceDesc">Price: High to Low</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Doctor Count */}
-        <div className="text-sm text-slate-600">
-          {loading ? "Loading doctors…" : `${count} doctors found`}
         </div>
 
-        {/* Error */}
-        {error && (
-          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800">
-            Error: {error}
-          </div>
-        )}
+        {/* 2. STICKY FILTER BAR (The "Airbnb" Style) */}
+        <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm transition-all">
+          <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-center gap-3">
 
-        {/* Doctor Cards */}
-        {loading ? (
-          <div className="grid grid-cols-1 gap-7 md:grid-cols-2 xl:grid-cols-3">
-            <div className="rounded-xl bg-slate-100 p-6 text-sm text-slate-700 shadow-sm">
-              Loading...
+              {/* A. Search Inputs (Always Visible) */}
+              <div className="flex-1 flex gap-3">
+                <div className="relative flex-1 group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SearchIcon />
+                  </div>
+                  <input
+                      type="text"
+                      className="block w-full rounded-full border-0 bg-slate-100 py-2.5 pl-10 pr-4 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-[#155EEF] sm:text-sm sm:leading-6 transition-all group-hover:bg-slate-50"
+                      placeholder="Specialty, eg. Heart..."
+                      value={specialty}
+                      onChange={(e) => setSpecialty(e.target.value)}
+                  />
+                </div>
+                <div className="relative flex-1 group">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <PinIcon />
+                  </div>
+                  <input
+                      type="text"
+                      className="block w-full rounded-full border-0 bg-slate-100 py-2.5 pl-10 pr-4 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 placeholder:text-slate-500 focus:ring-2 focus:ring-inset focus:ring-[#155EEF] sm:text-sm sm:leading-6 transition-all group-hover:bg-slate-50"
+                      placeholder="City..."
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* B. Filter Buttons (Pills) */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Price Pill */}
+                <div className="relative" ref={priceMenuRef}>
+                  <button
+                      onClick={() => setActivePopup(activePopup === "price" ? null : "price")}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium border transition-all whitespace-nowrap
+                                        ${hasPriceFilter
+                          ? "bg-blue-50 border-blue-200 text-blue-700"
+                          : "bg-white border-slate-300 text-slate-700 hover:border-slate-400"
+                      }`}
+                  >
+                    Price {hasPriceFilter ? "• Active" : ""}
+                    <ChevronDown />
+                  </button>
+
+                  {/* Price Dropdown (Popover) */}
+                  {activePopup === "price" && (
+                      <div className="absolute top-full right-0 mt-2 w-72 rounded-2xl bg-white p-5 shadow-xl ring-1 ring-black ring-opacity-5 z-50">
+                        <h3 className="font-semibold text-slate-900 mb-4">Price Range</h3>
+                        <div className="flex items-center gap-2 mb-4">
+                          <div className="flex-1">
+                            <label className="text-xs text-slate-500 mb-1 block">Min ($)</label>
+                            <input
+                                type="number"
+                                value={minPrice}
+                                onChange={(e) => setMinPrice(e.target.value === "" ? "" : Number(e.target.value))}
+                                className="w-full rounded-lg border-slate-300 text-sm p-2"
+                                placeholder="0"
+                            />
+                          </div>
+                          <div className="text-slate-400">-</div>
+                          <div className="flex-1">
+                            <label className="text-xs text-slate-500 mb-1 block">Max ($)</label>
+                            <input
+                                type="number"
+                                value={maxPrice}
+                                onChange={(e) => setMaxPrice(e.target.value === "" ? "" : Number(e.target.value))}
+                                className="w-full rounded-lg border-slate-300 text-sm p-2"
+                                placeholder="500"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end">
+                          <button
+                              onClick={() => setActivePopup(null)}
+                              className="text-sm font-semibold text-[#155EEF] hover:underline"
+                          >
+                            Apply
+                          </button>
+                        </div>
+                      </div>
+                  )}
+                </div>
+
+                {/* Sort Pill */}
+                <div className="relative" ref={sortMenuRef}>
+                  <button
+                      onClick={() => setActivePopup(activePopup === "sort" ? null : "sort")}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium bg-white border border-slate-300 text-slate-700 hover:border-slate-400 transition-all whitespace-nowrap"
+                  >
+                    Sort: <span className="text-slate-900 font-semibold">
+                                        {sort === 'relevance' ? 'Relevance' :
+                                            sort === 'rating' ? 'Top Rated' :
+                                                sort === 'priceAsc' ? 'Lowest Price' : 'Highest Price'}
+                                    </span>
+                    <ChevronDown />
+                  </button>
+
+                  {activePopup === "sort" && (
+                      <div className="absolute top-full right-0 mt-2 w-48 rounded-xl bg-white py-1 shadow-xl ring-1 ring-black ring-opacity-5 z-50 overflow-hidden">
+                        {[
+                          { label: "Relevance", val: "relevance" },
+                          { label: "Highest Rated", val: "rating" },
+                          { label: "Price: Low to High", val: "priceAsc" },
+                          { label: "Price: High to Low", val: "priceDesc" },
+                        ].map((opt) => (
+                            <button
+                                key={opt.val}
+                                onClick={() => { setSort(opt.val as any); setActivePopup(null); }}
+                                className={`block w-full text-left px-4 py-2 text-sm hover:bg-slate-50 ${sort === opt.val ? "text-[#155EEF] font-semibold bg-blue-50" : "text-slate-700"}`}
+                            >
+                              {opt.label}
+                            </button>
+                        ))}
+                      </div>
+                  )}
+                </div>
+
+                {/* Verified Toggle */}
+                <button
+                    onClick={() => setOnlyVerified(!onlyVerified)}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium border transition-all whitespace-nowrap
+                                    ${onlyVerified
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                        : "bg-white border-slate-300 text-slate-700 hover:border-slate-400"
+                    }`}
+                >
+                  {onlyVerified ? "✓ Verified Only" : "Verified Only"}
+                </button>
+
+              </div>
             </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-7 md:grid-cols-2 xl:grid-cols-3">
-            {visible?.map((r) => (
-              <DoctorCard
-                key={r.id}
-                d={r}
-                onView={() => navigate(`/doctor/${r.id}`)}
-                onBook={() => handleBookClick(r)}
-              />
-            ))}
-          </div>
-        )}
+        </div>
 
-        {selectedDoctor && (
-          <BookingModal
-            doctor={selectedDoctor}
-            onClose={() => setSelectedDoctor(null)}
-            onConfirm={handleConfirmBooking}
-            isLoading={bookingState === "loading"}
-          />
-        )}
+        {/* 3. MAIN CONTENT GRID */}
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+
+          {/* Result Count */}
+          <div className="mb-6 flex items-center justify-between">
+            <p className="text-sm font-medium text-slate-500">
+              {loading ? "Searching..." : `Showing ${count} verified specialists`}
+            </p>
+          </div>
+
+          {/* Error State */}
+          {error && (
+              <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-800 mb-8">
+                Error: {error}
+              </div>
+          )}
+
+          {/* Loading State */}
+          {loading ? (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="h-64 rounded-2xl bg-slate-50 border border-slate-100 animate-pulse" />
+                ))}
+              </div>
+          ) : (
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {visible?.map((r) => (
+                    <DoctorCard
+                        key={r.id}
+                        d={r}
+                        onView={() => navigate(`/doctor/${r.id}`)}
+                        onBook={() => handleBookClick(r)}
+                    />
+                ))}
+              </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && count === 0 && (
+              <div className="text-center py-20 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50">
+                <p className="text-slate-500">No doctors match your filters.</p>
+                <button
+                    onClick={() => {setSpecialty(""); setCity(""); setMinPrice(""); setMaxPrice(""); setOnlyVerified(false);}}
+                    className="mt-2 text-sm font-semibold text-[#155EEF] hover:underline"
+                >
+                  Clear all filters
+                </button>
+              </div>
+          )}
+
+          {selectedDoctor && (
+              <BookingModal
+                  doctor={selectedDoctor}
+                  onClose={() => setSelectedDoctor(null)}
+                  onConfirm={handleConfirmBooking}
+                  isLoading={bookingState === "loading"}
+              />
+          )}
+        </div>
       </div>
-    </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getTopRatedDoctors } from "../services/doctorService";
-import type { Doctor } from "../services/doctorService"; // or from "../types" depending on where you put it
+import type { Doctor } from "../Types/Doctor.ts"; // or from "../types" depending on where you put it
 
 export default function TopDoctorsSection() {
     const [doctors, setDoctors] = useState<Doctor[]>([]);

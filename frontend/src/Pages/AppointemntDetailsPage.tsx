@@ -1,23 +1,13 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../Authentification Context/AuthContext.tsx";
 import {useParams} from "react-router-dom";
-
-// 1. Types
-export interface AppointmentDetails {
-    id: string;
-    doctorId: string;
-    date: string;
-    time: string;
-    status: string;
-    doctorName: string;
-}
-
+import type {AppointmentsDTO} from "../Types/Appointment.ts";
 
 
 export default function AppointmentDetailsPage() {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [appointment, setAppointment] = useState<AppointmentDetails | null>(null);
+    const [appointment, setAppointment] = useState<AppointmentsDTO | null>(null);
     const { id } = useParams<{ id: string }>();
 
 

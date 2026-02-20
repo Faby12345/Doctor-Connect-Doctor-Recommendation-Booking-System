@@ -27,20 +27,11 @@ public class DoctorService {
     }
 
     public List<DoctorDTO> findAll() {
-        return doctorRepository.findAll().stream()
-                .map(d -> new DoctorDTO(
-                        d.getUserId(),
-                        null, // or fetch fullName if available
-                        d.getSpeciality(),
-                        d.getBio(),
-                        d.getCity(),
-                        d.getPriceMinCents(),
-                        d.getPriceMaxCents(),
-                        d.isVerified(),
-                        d.getRatingAvg(),
-                        d.getRatingCount()))
-                .toList();
-
+        List<Doctor> doctors = doctorRepository.findAll();
+        if(doctors.isEmpty()){
+            return List.of();
+        }
+        return convertToDTOs(doctors);
     }
 
     @SuppressWarnings("null")
