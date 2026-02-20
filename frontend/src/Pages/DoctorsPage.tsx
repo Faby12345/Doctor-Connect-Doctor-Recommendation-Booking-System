@@ -14,6 +14,7 @@ export type DoctorRow = {
   id: string;
   fullName: string;
   speciality: string;
+  bio: string;
   city: string;
   priceMinCents: number;
   priceMaxCents: number;
