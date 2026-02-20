@@ -59,14 +59,9 @@ public class AppointmentsController {
     }
 
     @GetMapping("doctor/{id}")
-    public ResponseEntity<List<Appointments>> getAppForDoc(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
-
-        try {
-            var res = appointmentsService.GetAllAppointmentsDoctor(id);
-            return ResponseEntity.ok(res);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<List<AppointmentsDTO>> getAppForDoc(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
+        var res = appointmentsService.GetAllAppointmentsDoctor(id, me.id());
+        return ResponseEntity.ok(res);
     }
 
     @GetMapping( "patient/{id}")
@@ -79,7 +74,7 @@ public class AppointmentsController {
         }
     }
     @GetMapping( "incoming/{id}")
-    public ResponseEntity<List<IncommingAppointmentsDTO>> getIncomingAppForPatient(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
+    public ResponseEntity<List<AppointmentsDTO>> getIncomingAppForPatient(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
         try {
             var res = appointmentsService.GetAllIncomingAppointmentsPatient(id);
             return ResponseEntity.ok(res);
@@ -93,15 +88,12 @@ public class AppointmentsController {
     }
 
     @GetMapping("/last-completed")
-    public ResponseEntity<?> // the wild card is for that in the catch i have return e.getMessage which is string and the first retrun is an appointmentDTO
+    public ResponseEntity<AppointmentsDTO> // the wild card is for that in the catch i have return e.getMessage which is string and the first retrun is an appointmentDTO
     getLastCompletedAppointemnt(@AuthenticationPrincipal UserPrincipal me) {
-        try{
-            UUID patientId = me.id();
-            AppointmentsDTO appDTO = appointmentsService.getLastAppointmentByPatient(patientId);
-            return ResponseEntity.ok(appDTO);
-        } catch (RuntimeException e){
-            return ResponseEntity.status(404).body(e.getMessage());
-        }
+        UUID patientId = me.id();
+        AppointmentsDTO appDTO = appointmentsService.getLastAppointmentByPatient(patientId);
+        return ResponseEntity.ok(appDTO);
+
     }
     @GetMapping("/history")
     public ResponseEntity<List<AppointmentsDTO>> getHistory(@AuthenticationPrincipal UserPrincipal me) {

@@ -1,8 +1,8 @@
 import {useState, useEffect} from "react";
-import type {AppointmentsHistoryDTO} from "../Types/Appointment.ts";
+import type {AppointmentsDTO} from "../Types/Appointment.ts";
 import {getAppointmentsHistory} from "../services/appointmentServices";
 export default function HistoryList() {
-    const [appointmentsHistory, setAppointmentsHistory] = useState<AppointmentsHistoryDTO[]>([])
+    const [appointmentsHistory, setAppointmentsHistory] = useState<AppointmentsDTO[]>([])
     const [isLoading, setisLoading] = useState(true);
 
     useEffect(() => {

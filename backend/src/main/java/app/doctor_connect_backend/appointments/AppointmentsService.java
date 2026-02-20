@@ -10,6 +10,7 @@ import app.doctor_connect_backend.user.UserService;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
+import javax.print.DocFlavor;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,8 +25,26 @@ public class AppointmentsService {
 
 
 
-    public List<Appointments> GetAllAppointmentsDoctor(UUID doctorId) {
-        return appointmentsRepo.findAllByDoctorId(doctorId).stream().toList();
+
+    public List<AppointmentsDTO> GetAllAppointmentsDoctor(UUID doctorId, UUID callerId) {
+        verifyDataOwnership(callerId, doctorId);
+        List<Appointments> appointments = appointmentsRepo.findAllByDoctorId(doctorId);
+
+        User doctor = userService.findById(doctorId);
+
+
+        List<AppointmentsDTO> appointmentsDTO = new ArrayList<>();
+        for(Appointments a : appointments){
+            appointmentsDTO.add(new AppointmentsDTO(
+                    a.getId(), a.getDoctorId(), a.getPatientId(),
+                    a.getDate(), a.getTime(), a.getStatus(), doctor.getFullName()));
+        }
+
+        /** A map for retriving the name of the doctor to convert it from entity to DTO */
+
+
+
+        return appointmentsDTO;
     }
 
     /**
@@ -39,9 +58,16 @@ public class AppointmentsService {
             throw new UserNotAuthorizedException("You are not authorized to perform this action");
         }
     }
-    public List<IncommingAppointmentsDTO> GetAllIncomingAppointmentsPatient(UUID patientId){
+    public void verifyDataOwnership(UUID callerId, UUID ownerId) {
+        boolean isOwner = ownerId.equals(callerId);
+        if (!isOwner) {
+            throw new UserNotAuthorizedException("You are not authorized to perform this action");
+        }
+    }
+    public List<AppointmentsDTO> GetAllIncomingAppointmentsPatient(UUID patientId){
         List<Appointments> appointments = appointmentsRepo.findAllByPatientId(patientId);
-        List<IncommingAppointmentsDTO> incommingAppointments = new ArrayList<>();
+        List<AppointmentsDTO> appointmentsDTO = new ArrayList<>();
+
         for(Appointments a : appointments){
             if(a.getStatus().equals(AppointmentsStatus.CONFIRMED.toString())) {
 
@@ -50,20 +76,18 @@ public class AppointmentsService {
                 AppointmentsDTO appointmentDTO = new AppointmentsDTO(
                         a.getId(),
                         a.getDoctorId(),
+                        patientId,
                         a.getDate(),
                         a.getTime(),
                         a.getStatus(),
                         doctor.getFullName()
                 );
-                IncommingAppointmentsDTO incommingDTO = new IncommingAppointmentsDTO(
-                        appointmentDTO,
-                        doctor.getFullName()
-                );
-                incommingAppointments.add(incommingDTO);
+                appointmentsDTO.add(appointmentDTO);
+
             }
         }
 
-        return incommingAppointments;
+        return appointmentsDTO;
     }
 
     public List<Appointments> GetAllAppointmentsPatient(UUID patientId) {
@@ -154,6 +178,7 @@ public class AppointmentsService {
         return new AppointmentsDTO(
                 app.getId(),
                 app.getDoctorId(),
+                app.getPatientId(),
                 app.getDate(),
                 app.getTime(),
                 app.getStatus(),
@@ -172,6 +197,7 @@ public class AppointmentsService {
                 return new AppointmentsDTO(
                         app.getId(),
                         app.getDoctorId(),
+                        app.getPatientId(),
                         app.getDate(),
                         app.getTime(),
                         app.getStatus(),
@@ -214,6 +240,7 @@ public class AppointmentsService {
                     return new AppointmentsDTO(
                             appointment.getId(),
                             appointment.getDoctorId(),
+                            appointment.getPatientId(),
                             appointment.getDate(),
                             appointment.getTime(),
                             appointment.getStatus(),
