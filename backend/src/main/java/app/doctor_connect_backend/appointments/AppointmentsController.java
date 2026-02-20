@@ -26,13 +26,7 @@ public class AppointmentsController {
     @GetMapping("/details/{id}")
     public ResponseEntity<AppointmentsDTO> getAppointmentDetails(@AuthenticationPrincipal UserPrincipal me,
                                                                  @PathVariable @NonNull UUID id) {
-        try {
-            AppointmentsDTO dto = appointmentsService.getAppointmentDetails(id);
-            return ResponseEntity.ok(dto);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
-
+        return ResponseEntity.ok(appointmentsService.getAppointmentDetails(id, me.id()));
     }
 
     @PostMapping
