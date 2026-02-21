@@ -18,8 +18,6 @@ import java.util.UUID;
 public class AppointmentsController {
     private final AppointmentsService appointmentsService;
 
-
-
     public AppointmentsController(AppointmentsService appointmentsService, AppointmentsRepo appointmentsRepo) {
         this.appointmentsService = appointmentsService;
     }
@@ -36,25 +34,25 @@ public class AppointmentsController {
 
     @PutMapping("/{id}/cancel")
     public ResponseEntity<Boolean> cancelAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
-        appointmentsService.CancelAppointment(id, me.id(), me.role());
+        appointmentsService.CancelAppointment(id, me.id());
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/confirm")
     public ResponseEntity<Boolean> confirmAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
-        appointmentsService.ConfirmAppointment(id, me.id(), me.role());
+        appointmentsService.ConfirmAppointment(id, me.id());
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/reject")
     public ResponseEntity<Boolean> rejectAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
-        appointmentsService.RejectAppointment(id, me.id(), me.role());
+        appointmentsService.RejectAppointment(id, me.id());
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}/completed")
     public ResponseEntity<Boolean> completeAppointment(@AuthenticationPrincipal UserPrincipal me, @PathVariable @NonNull UUID id) {
-        appointmentsService.CompleteAppointment(id, me.id(), me.role());
+        appointmentsService.CompleteAppointment(id, me.id());
         return ResponseEntity.noContent().build();
     }
 
@@ -75,6 +73,7 @@ public class AppointmentsController {
         var res = appointmentsService.GetAllIncomingAppointmentsPatient(id, me.id());
         return ResponseEntity.ok(res);
     }
+    /// For testing connection
     @GetMapping( "/test")
     public String getTest(){
         return "OK";

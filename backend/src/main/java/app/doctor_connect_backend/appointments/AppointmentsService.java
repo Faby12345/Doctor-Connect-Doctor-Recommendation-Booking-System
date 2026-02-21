@@ -23,6 +23,8 @@ public class AppointmentsService {
         this.userService = userService;
     }
 
+    /**   **** HELPER FUNCTIONS  **** */
+
     private AppointmentsDTO mapToDTO(Appointments app) {
 
         User doctor = userService.findById(app.getDoctorId());
@@ -35,15 +37,27 @@ public class AppointmentsService {
                 app.getDate(),
                 app.getTime(),
                 app.getStatus(),
-                doctor.getFullName() // <-- We got the name!
+                doctor.getFullName()
         );
     }
 
-
-
-
-
-
+    /**
+     * for preventing userA access the data of userB (which is not authorized)
+     * BUT the doctor the appointment CAN view it
+     * */
+    public void verifyDataOwnership(UUID callerId, UUID ownerId, UUID doctorId) {
+        boolean isDoctor = doctorId.equals(callerId);
+        boolean isPacient = ownerId.equals(callerId);
+        if (!isDoctor && !isPacient) {
+            throw new UserNotAuthorizedException("You are not authorized to perform this action");
+        }
+    }
+    public void verifyDataOwnership(UUID callerId, UUID ownerId) {
+        boolean isOwner = ownerId.equals(callerId);
+        if (!isOwner) {
+            throw new UserNotAuthorizedException("You are not authorized to perform this action");
+        }
+    }
 
     public List<AppointmentsDTO> GetAllAppointmentsDoctor(UUID doctorId, UUID callerId) {
         verifyDataOwnership(callerId, doctorId);
@@ -66,23 +80,8 @@ public class AppointmentsService {
         return appointmentsDTO;
     }
 
-    /**
-     * for preventing userA access the data of userB (which is not authorized)
-     * BUT the doctor the appointment CAN view it
-     * */
-    public void verifyDataOwnership(UUID callerId, UUID ownerId, UUID doctorId) {
-        boolean isDoctor = doctorId.equals(callerId);
-        boolean isPacient = ownerId.equals(callerId);
-        if (!isDoctor && !isPacient) {
-            throw new UserNotAuthorizedException("You are not authorized to perform this action");
-        }
-    }
-    public void verifyDataOwnership(UUID callerId, UUID ownerId) {
-        boolean isOwner = ownerId.equals(callerId);
-        if (!isOwner) {
-            throw new UserNotAuthorizedException("You are not authorized to perform this action");
-        }
-    }
+    /** ****  FUNCTIONS FOR RETRIEVE-ING THE DATA + BUSINESS LOGIC   *****/
+
     public List<AppointmentsDTO> GetAllIncomingAppointmentsPatient(UUID patientId, UUID callerId){
         verifyDataOwnership(callerId, patientId);
 
@@ -91,20 +90,8 @@ public class AppointmentsService {
 
         for(Appointments a : appointments){
             if(a.getStatus().equals(AppointmentsStatus.CONFIRMED.toString())) {
-
-
-                User doctor = userService.findById(a.getDoctorId());
-                AppointmentsDTO appointmentDTO = new AppointmentsDTO(
-                        a.getId(),
-                        a.getDoctorId(),
-                        patientId,
-                        a.getDate(),
-                        a.getTime(),
-                        a.getStatus(),
-                        doctor.getFullName()
-                );
-                appointmentsDTO.add(appointmentDTO);
-
+                AppointmentsDTO dto= mapToDTO(a);
+                appointmentsDTO.add(dto);
             }
         }
 
@@ -126,59 +113,40 @@ public class AppointmentsService {
     /**
      * Only a pacient can cancel THEIR OWN appointment
      * */
-    public void CancelAppointment(@NonNull UUID AppointmentId, UUID callerId,
-                                  String role) {
+    public void CancelAppointment(@NonNull UUID AppointmentId, UUID callerId) {
         Appointments app = appointmentsRepo.findById(AppointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        if(!role.equals(Roles.PATIENT.toString()))
-            throw new RuntimeException("You are not authorized to cancel this appointment");
-        if (!app.getPatientId().equals(callerId))
-            throw new RuntimeException("You are not authorized to cancel this appointment");
+       verifyDataOwnership(callerId, app.getPatientId());
 
         app.setStatus(AppointmentsStatus.CANCELLED.toString());
         appointmentsRepo.save(app);
     }
 
 
-    public void ConfirmAppointment(@NonNull UUID AppointmentId, UUID callerId, String role) {
+    public void ConfirmAppointment(@NonNull UUID AppointmentId, UUID callerId) {
         Appointments app = appointmentsRepo.findById(AppointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        if(!role.equals(Roles.DOCTOR.toString())){
-            throw new RuntimeException("You are not authorized to cancel this appointment");
-        }
-        if (!app.getDoctorId().equals(callerId)) {
-            throw new RuntimeException("You are not authorized to cancel this appointment");
-        }
+        verifyDataOwnership(callerId, app.getPatientId());
 
         app.setStatus(AppointmentsStatus.CONFIRMED.toString());
         appointmentsRepo.save(app);
     }
-    public void RejectAppointment(@NonNull UUID AppointmentId, UUID callerId, String role) {
+    public void RejectAppointment(@NonNull UUID AppointmentId, UUID callerId) {
         Appointments app = appointmentsRepo.findById(AppointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        if(!role.equals(Roles.DOCTOR.toString())){
-            throw new UserNotAuthorizedException("You are not authorized to cancel this appointment");
-        }
-        if (!app.getDoctorId().equals(callerId)) {
-            throw new UserNotAuthorizedException("You are not authorized to cancel this appointment");
-        }
+        verifyDataOwnership(callerId, app.getPatientId());
 
         app.setStatus(AppointmentsStatus.REJECTED.toString());
         appointmentsRepo.save(app);
     }
-    public void CompleteAppointment(@NonNull UUID AppointmentId, UUID callerId, String role) {
+    public void CompleteAppointment(@NonNull UUID AppointmentId, UUID callerId) {
         Appointments app = appointmentsRepo.findById(AppointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        if(!role.equals(Roles.DOCTOR.toString())){
-            throw new UserNotAuthorizedException("You are not authorized to cancel this appointment");
-        }
-        if (!app.getDoctorId().equals(callerId)) {
-            throw new UserNotAuthorizedException("You are not authorized to cancel this appointment");
-        }
+        verifyDataOwnership(callerId, app.getPatientId());
 
         app.setStatus(AppointmentsStatus.COMPLETED.toString());
         appointmentsRepo.save(app);
