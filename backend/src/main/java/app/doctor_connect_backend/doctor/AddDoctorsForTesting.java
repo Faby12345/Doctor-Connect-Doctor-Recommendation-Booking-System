@@ -4,6 +4,7 @@ import app.doctor_connect_backend.auth.app.AuthService; // <-- adjust if registe
 // <-- adjust to where UserResponse lives
 
 import app.doctor_connect_backend.auth.web.DTOs.AuthResponse;
+import app.doctor_connect_backend.common.exception.ResourceNotFoundException;
 import app.doctor_connect_backend.user.Roles;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +51,7 @@ public class AddDoctorsForTesting {
             UUID userId = savedUser.id();
 
             // 2) Find the just-created Doctor by FK (user_id)
-            Doctor doctor = doctorRepository.findByUserId(userId);
+            Doctor doctor = doctorRepository.findByUserId(userId).orElseThrow(() -> new ResourceNotFoundException("Doctor with id: " + userId + " not found" ));
             if (doctor == null) {
                 // fallback: if your register does NOT auto-create a Doctor, create it now
                 doctor = new Doctor();

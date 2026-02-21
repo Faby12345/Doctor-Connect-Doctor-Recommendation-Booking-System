@@ -1,8 +1,10 @@
 package app.doctor_connect_backend.doctor;
 
 import app.doctor_connect_backend.Review.Review;
+import app.doctor_connect_backend.common.exception.ResourceNotFoundException;
 import app.doctor_connect_backend.user.User;
 import app.doctor_connect_backend.user.UserRepository;
+import app.doctor_connect_backend.user.UserService;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -16,14 +18,24 @@ import java.util.stream.Collectors;
 public class DoctorService {
     private final DoctorRepository doctorRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public DoctorService(DoctorRepository doctorRepository, UserRepository userRepository) {
+    public DoctorService(DoctorRepository doctorRepository, UserRepository userRepository, UserService userService) {
         this.doctorRepository = doctorRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
-    public Doctor findByUser_id(UUID id) {
-        return doctorRepository.findByUserId(id);
+    public DoctorDTO findByUser_id(UUID id) {
+
+        Doctor doctor = doctorRepository.findByUserId(id).orElseThrow(
+                () -> new ResourceNotFoundException("Doctor  with id " + id + "not found"));
+
+        User user = userService.findById(id);
+
+        return new DoctorDTO(doctor.getUserId(), user.getFullName(), doctor.getSpeciality(),
+                doctor.getBio(), doctor.getCity(), doctor.getPriceMinCents(), doctor.getPriceMaxCents(),
+                doctor.isVerified(), doctor.getRatingAvg(), doctor.getRatingCount());
     }
 
     public List<DoctorDTO> findAll() {
@@ -40,7 +52,8 @@ public class DoctorService {
     }
 
     public Doctor updateDoctor(UUID userId, DoctorUpdateDTO dto) {
-        Doctor doctor = doctorRepository.findByUserId(userId);
+        Doctor doctor = doctorRepository.findByUserId(userId).orElseThrow(
+                () -> new ResourceNotFoundException("Doctor  with id " + userId + "not found"));
         if (doctor == null) {
             throw new IllegalArgumentException("Doctor profile not found");
         }
@@ -63,6 +76,7 @@ public class DoctorService {
 
         return doctorRepository.save(doctor);
     }
+
     public List<DoctorDTO> convertToDTOs(List<Doctor> doctors) {
         // Optimization: Fetch all needed Users in ONE query instead of N queries
         // This prevents the "N+1 Select Problem" which makes apps slow
