@@ -75,12 +75,8 @@ public class AppointmentsController {
     }
     @GetMapping( "incoming/{id}")
     public ResponseEntity<List<AppointmentsDTO>> getIncomingAppForPatient(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
-        try {
-            var res = appointmentsService.GetAllIncomingAppointmentsPatient(id);
-            return ResponseEntity.ok(res);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
+        var res = appointmentsService.GetAllIncomingAppointmentsPatient(id, me.id());
+        return ResponseEntity.ok(res);
     }
     @GetMapping( "/test")
     public String getTest(){

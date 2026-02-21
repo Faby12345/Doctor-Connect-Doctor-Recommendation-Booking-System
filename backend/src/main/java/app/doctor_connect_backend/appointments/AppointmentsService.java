@@ -64,7 +64,9 @@ public class AppointmentsService {
             throw new UserNotAuthorizedException("You are not authorized to perform this action");
         }
     }
-    public List<AppointmentsDTO> GetAllIncomingAppointmentsPatient(UUID patientId){
+    public List<AppointmentsDTO> GetAllIncomingAppointmentsPatient(UUID patientId, UUID callerId){
+        verifyDataOwnership(callerId, patientId);
+
         List<Appointments> appointments = appointmentsRepo.findAllByPatientId(patientId);
         List<AppointmentsDTO> appointmentsDTO = new ArrayList<>();
 
