@@ -23,6 +23,25 @@ public class AppointmentsService {
         this.userService = userService;
     }
 
+    private AppointmentsDTO mapToDTO(Appointments app) {
+
+        User doctor = userService.findById(app.getDoctorId());
+
+        // 2. Build and return the DTO
+        return new AppointmentsDTO(
+                app.getId(),
+                app.getDoctorId(),
+                app.getPatientId(),
+                app.getDate(),
+                app.getTime(),
+                app.getStatus(),
+                doctor.getFullName() // <-- We got the name!
+        );
+    }
+
+
+
+
 
 
 
@@ -92,8 +111,15 @@ public class AppointmentsService {
         return appointmentsDTO;
     }
 
-    public List<Appointments> GetAllAppointmentsPatient(UUID patientId) {
-        return appointmentsRepo.findAllByPatientId(patientId).stream().toList();
+    public List<AppointmentsDTO> GetAllAppointmentsPatient(UUID patientId, UUID callerID) {
+        verifyDataOwnership(patientId, callerID);
+
+        List<Appointments> appointmentsEntityList = appointmentsRepo.findAllByPatientId(patientId);
+        List<AppointmentsDTO> appointmentsDTO = new ArrayList<>();
+        for (Appointments app : appointmentsEntityList) {
+            appointmentsDTO.add(mapToDTO(app));
+        }
+        return appointmentsDTO;
     }
 
 

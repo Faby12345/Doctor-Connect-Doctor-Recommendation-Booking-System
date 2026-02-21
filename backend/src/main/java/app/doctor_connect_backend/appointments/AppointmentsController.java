@@ -65,13 +65,10 @@ public class AppointmentsController {
     }
 
     @GetMapping( "patient/{id}")
-    public ResponseEntity<List<Appointments>> getAppForPatient(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
-        try {
-            var res = appointmentsService.GetAllAppointmentsPatient(id);
-            return ResponseEntity.ok(res);
-        } catch (Exception e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<List<AppointmentsDTO>> getAppForPatient(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
+        var res = appointmentsService.GetAllAppointmentsPatient(id, me.id());
+        return ResponseEntity.ok(res);
+
     }
     @GetMapping( "incoming/{id}")
     public ResponseEntity<List<AppointmentsDTO>> getIncomingAppForPatient(@AuthenticationPrincipal UserPrincipal me, @PathVariable UUID id) {
@@ -84,10 +81,9 @@ public class AppointmentsController {
     }
 
     @GetMapping("/last-completed")
-    public ResponseEntity<AppointmentsDTO> // the wild card is for that in the catch i have return e.getMessage which is string and the first retrun is an appointmentDTO
+    public ResponseEntity<AppointmentsDTO>
     getLastCompletedAppointemnt(@AuthenticationPrincipal UserPrincipal me) {
-        UUID patientId = me.id();
-        AppointmentsDTO appDTO = appointmentsService.getLastAppointmentByPatient(patientId);
+        AppointmentsDTO appDTO = appointmentsService.getLastAppointmentByPatient(me.id());
         return ResponseEntity.ok(appDTO);
 
     }

@@ -1,15 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../Authentification Context/AuthContext.tsx";
 import RatingModal from "./RatingModalPopUp.tsx";
-
-type Appointment = {
-  id: string;
-  patientId: string;
-  doctorId: string;
-  date: string;
-  time: string;
-  status: string;
-};
+import type {AppointmentsDTO} from "../Types/Appointment.ts";
 
 type Review = {
   appointmentId: string;
@@ -21,7 +13,7 @@ const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 export default function UserAppointments() {
   const { user, loading: authLoading } = useAuth();
-  const [items, setItems] = useState<Appointment[]>([]);
+  const [items, setItems] = useState<AppointmentsDTO[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [ratingForId, setRatingForId] = useState<string | null>(null);
@@ -45,7 +37,7 @@ export default function UserAppointments() {
         }
       );
       if (!res.ok) throw new Error(await res.text());
-      const data = (await res.json()) as Appointment[];
+      const data = (await res.json()) as AppointmentsDTO[];
       setItems(data);
     } catch (e: any) {
       setErr(e?.message ?? "Failed to load appointments");
