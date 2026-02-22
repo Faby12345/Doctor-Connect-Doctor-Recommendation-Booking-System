@@ -3,6 +3,8 @@ package app.doctor_connect_backend.Review;
 import app.doctor_connect_backend.appointments.Appointments;
 import app.doctor_connect_backend.appointments.AppointmentsRepo;
 import app.doctor_connect_backend.auth.web.DTOs.UserResponse;
+import app.doctor_connect_backend.common.exception.ResourceNotFoundException;
+import app.doctor_connect_backend.common.exception.UserNotAuthorizedException;
 import app.doctor_connect_backend.doctor.Doctor;
 import app.doctor_connect_backend.doctor.DoctorRepository;
 import app.doctor_connect_backend.user.User;
@@ -33,7 +35,7 @@ public class ReviewService {
     protected void calculateAvgRateForDoctor(int rating, UUID doctorId) {
         Doctor doctor = doctorRepository
                 .findByUserIdWithLock(doctorId)
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
 
 
         int currentCount =  doctor.getRatingCount();
@@ -57,22 +59,27 @@ public class ReviewService {
     @Transactional
     public ReviewResponseDTO save(ReviewCreateDTO dto, UUID patientId) {
         Appointments appointment = appointmentsRepo.findById(Objects.requireNonNull(dto.appointmentId()))
-                .orElseThrow(() -> new RuntimeException("Appointment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
 
-        if (!reviewRepository.existsByAppointmentId(dto.appointmentId())) {
+        // 1. Security check!
+        if (!appointment.getPatientId().equals(patientId)) {
+            throw new UserNotAuthorizedException("You can only review your own appointments.");
+        }
+
+        if (reviewRepository.existsByAppointmentId(dto.appointmentId())) {
             throw new IllegalStateException("You have already reviewed this appointment.");
         }
 
         User patient = userService.findById(patientId);
 
         Doctor doctor = doctorRepository.findById(appointment.getDoctorId())
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
 
 
         User doctorUser = userService.findById(doctor.getUserId());
         String doctorName = doctorUser.getFullName();
 
-        try {
+
             // save the entity
             Review reviewEntity = new Review();
             reviewEntity.setAppointmentId(dto.appointmentId());
@@ -97,33 +104,23 @@ public class ReviewService {
                     patient.getFullName(),
                     doctorName
             );
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error saving review: " + e.getMessage());
-        }
-
     }
 
-    public Review findByAppointmentId(UUID appointmentId) {
-        return reviewRepository.findByAppointmentId(appointmentId);
-    }
-
-    public Review findByPatientId(UUID patientId) {
-        return reviewRepository.findByPatientId(patientId);
-    }
 
     public List<ReviewResponseDTO> findAllByDoctorId(UUID doctorId) {
         // Get the raw entities from the DB
         List<Review> reviews = reviewRepository.findAllByDoctorId(doctorId);
 
+        Doctor doctor = doctorRepository.findById(doctorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Doctor not found"));
+
+        User doctorUser = userService.findById(doctor.getUserId());
+
+
         // Convert each entity to a DTO (fetching names as needed)
         return reviews.stream().map(review -> {
 
             User patient = userService.findById(review.getPatientId());
-
-            Doctor doctor = doctorRepository.findById(review.getDoctorId())
-                    .orElseThrow(() -> new RuntimeException("Doctor not found"));
-            User doctorUser = userService.findById(doctor.getUserId());
 
             return new ReviewResponseDTO(
                     review.getAppointmentId(),
