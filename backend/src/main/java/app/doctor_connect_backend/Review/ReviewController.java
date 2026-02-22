@@ -16,11 +16,10 @@ import java.util.UUID;
 @RequestMapping("/api/review")
 public class ReviewController {
     private final ReviewService reviewService;
-    private final UserService userService;
 
-    public ReviewController(ReviewService reviewService, UserService userService) {
+
+    public ReviewController(ReviewService reviewService) {
         this.reviewService = reviewService;
-        this.userService = userService;
     }
 
     @PostMapping()
@@ -34,12 +33,8 @@ public class ReviewController {
     }
 
     @GetMapping("/doctor/{id}")
-    public ResponseEntity<List<ReviewResponseDTO>> getReviewsForDoctor(
-            @AuthenticationPrincipal UserPrincipal me,
-            @PathVariable UUID id, Authentication authentication) {
-
+    public ResponseEntity<List<ReviewResponseDTO>> getReviewsForDoctor(@PathVariable UUID id) {
         return ResponseEntity.ok(reviewService.findAllByDoctorId(id));
-
     }
 
 }
