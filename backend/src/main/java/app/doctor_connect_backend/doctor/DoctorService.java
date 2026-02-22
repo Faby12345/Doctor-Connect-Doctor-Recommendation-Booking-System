@@ -5,6 +5,7 @@ import app.doctor_connect_backend.common.exception.ResourceNotFoundException;
 import app.doctor_connect_backend.user.User;
 import app.doctor_connect_backend.user.UserRepository;
 import app.doctor_connect_backend.user.UserService;
+import jakarta.transaction.Transactional;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +27,7 @@ public class DoctorService {
         this.userService = userService;
     }
 
-    public DoctorDTO findByUser_id(UUID id) {
+    public DoctorDTO findByUserId(UUID id) {
 
         Doctor doctor = doctorRepository.findByUserId(id).orElseThrow(
                 () -> new ResourceNotFoundException("Doctor  with id " + id + "not found"));
@@ -51,13 +52,20 @@ public class DoctorService {
         return Objects.requireNonNull(doctorRepository.save(doctor));
     }
 
-    public Doctor updateDoctor(UUID userId, DoctorUpdateDTO dto) {
-        Doctor doctor = doctorRepository.findByUserId(userId).orElseThrow(
-                () -> new ResourceNotFoundException("Doctor  with id " + userId + "not found"));
-        if (doctor == null) {
-            throw new IllegalArgumentException("Doctor profile not found");
+
+    @Transactional // Ensures both User and Doctor update safely or rollback together
+    public DoctorDTO updateDoctorProfile(UUID userId, DoctorUpdateDTO dto) {
+
+        // Update the User's Full Name if provided
+        if (dto.fullName() != null && !dto.fullName().isBlank()) {
+            userService.updateUser(userId, new app.doctor_connect_backend.user.UserUpdateDTO(dto.fullName()));
         }
 
+        //Fetch the Doctor (Fails fast if not found)
+        Doctor doctor = doctorRepository.findByUserId(userId).orElseThrow(
+                () -> new ResourceNotFoundException("Doctor with id " + userId + " not found"));
+
+        // Apply Doctor updates from the DTO
         if (dto.speciality() != null && !dto.speciality().isBlank()) {
             doctor.setSpeciality(dto.speciality().trim());
         }
@@ -74,7 +82,33 @@ public class DoctorService {
             doctor.setPriceMaxCents(dto.priceMaxCents());
         }
 
-        return doctorRepository.save(doctor);
+        //  Validate the final state of the Entity before saving
+        if (doctor.getPriceMinCents() < 0) {
+            throw new IllegalArgumentException("Minimum price cannot be less than zero.");
+        }
+        if (doctor.getPriceMaxCents() < doctor.getPriceMinCents()) {
+            throw new IllegalArgumentException("Maximum price cannot be lower than minimum price.");
+        }
+
+        //  Save the safely updated and validated doctor
+        Doctor updatedDoctor = doctorRepository.save(doctor);
+
+        //  Fetch the updated User so we have the fresh full name
+        User updatedUser = userService.findById(userId);
+
+        // Map to DTO and return
+        return new DoctorDTO(
+                updatedDoctor.getUserId(),
+                updatedUser.getFullName(),
+                updatedDoctor.getSpeciality(),
+                updatedDoctor.getBio(),
+                updatedDoctor.getCity(),
+                updatedDoctor.getPriceMinCents(),
+                updatedDoctor.getPriceMaxCents(),
+                updatedDoctor.isVerified(),
+                updatedDoctor.getRatingAvg(),
+                updatedDoctor.getRatingCount()
+        );
     }
 
     public List<DoctorDTO> convertToDTOs(List<Doctor> doctors) {
