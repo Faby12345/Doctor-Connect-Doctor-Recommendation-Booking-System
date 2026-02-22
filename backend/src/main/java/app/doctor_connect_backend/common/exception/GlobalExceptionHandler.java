@@ -30,4 +30,11 @@ public class GlobalExceptionHandler {
         ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(400, ex.getMessage(), String.valueOf(System.currentTimeMillis()));
         return ResponseEntity.status(400).body(errorResponseDTO);
     }
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponseDTO> handleIllegalStateException(IllegalStateException ex) {
+        logger.error("State conflict: {}", ex.getMessage());
+        // 409 Conflict is the perfect status code for duplicates!
+        ErrorResponseDTO errorResponse = new ErrorResponseDTO(409, ex.getMessage(), String.valueOf(System.currentTimeMillis()));
+        return ResponseEntity.status(409).body(errorResponse);
+    }
 }
