@@ -25,11 +25,14 @@ export default function PatientProfile() {
     async function handleSave() {
         setSaving(true);
         setError(null);
-
+        const token = localStorage.getItem("token");
         try {
             const res = await fetch(`${API_URL}/api/user/profile`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
                 credentials: "include",
                 body: JSON.stringify({ fullName: editName }),
             });

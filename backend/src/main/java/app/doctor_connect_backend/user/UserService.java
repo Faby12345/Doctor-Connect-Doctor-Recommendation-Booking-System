@@ -69,8 +69,7 @@ public class UserService {
     }
 
     @Transactional
-    @SuppressWarnings("null")
-    public User updateUser(@NonNull UUID id, UserUpdateDTO dto) {
+    public UserResponseDTO updateUser(@NonNull UUID id, UserUpdateDTO dto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -78,9 +77,12 @@ public class UserService {
             user.setFullName(dto.fullName().trim());
         }
 
-        return Objects.requireNonNull(userRepository.save(user));
+        User updatedUser = userRepository.save(user);
+        return UserMapper.toDTO(updatedUser);
     }
+
     public List<User> findAllById(Collection<UUID> ids){
         return userRepository.findAllById(ids);
     }
+
 }
