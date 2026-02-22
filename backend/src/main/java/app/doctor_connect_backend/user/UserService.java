@@ -1,5 +1,6 @@
 package app.doctor_connect_backend.user;
 
+import app.doctor_connect_backend.common.exception.ResourceNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
@@ -62,7 +63,9 @@ public class UserService {
     }
 
     public User findById(@NonNull UUID id) {
-        return userRepository.findById(id).orElseThrow();
+        return userRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("User with id " + id + " not found")
+        );
     }
 
     @Transactional

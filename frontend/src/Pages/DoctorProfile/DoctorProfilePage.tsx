@@ -97,12 +97,16 @@ export default function DoctorProfile() {
   async function handleSave() {
     setSaving(true);
     setError(null);
-
+    const token = localStorage.getItem("token");
+    console.log("my token: " + token);
     try {
-      const res = await fetch(`${API_URL}/api/doctor/profile`, {
+      const res = await fetch(`${API_URL}/api/doctor/profile`, { // TODO add the tokeen here
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+
         body: JSON.stringify(editForm),
       });
 
