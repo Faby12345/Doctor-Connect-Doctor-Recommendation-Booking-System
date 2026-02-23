@@ -9,6 +9,7 @@ import app.doctor_connect_backend.auth.web.DTOs.UserResponse;
 import app.doctor_connect_backend.user.Roles;
 import app.doctor_connect_backend.user.User;
 import app.doctor_connect_backend.user.UserRepository;
+import app.doctor_connect_backend.user.UserResponseDTO;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
@@ -57,10 +58,10 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal UserPrincipal me) {
+    public ResponseEntity<UserResponseDTO> me(@AuthenticationPrincipal UserPrincipal me) {
         User user = userRepository.findById(me.id()).orElseThrow();
-        return ResponseEntity.ok(new UserResponse(
-                user.getId(), user.getFullName(), user.getEmail(), user.getUserRole(), user.getCreatedAt()
+        return ResponseEntity.ok(new UserResponseDTO(
+                user.getId(), user.getFullName(), user.getEmail(), user.getUserRole().toString(), user.getCreatedAt().toString()
         ));
     }
 

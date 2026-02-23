@@ -42,10 +42,8 @@ export default function PatientProfile() {
             }
 
             const updated = await res.json();
-            setUser({
-                ...user!,
-                fullName: updated.name,
-            });
+            setUser(updated);
+
             setIsEditing(false);
         } catch (e) {
             setError(e instanceof Error ? e.message : "An error occurred");
@@ -96,7 +94,7 @@ export default function PatientProfile() {
                                                 disabled={saving}
                                                 className="px-5 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl font-medium shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 transition-all duration-200 disabled:opacity-50"
                                             >
-                                                {saving ? "Se salvează..." : "Salvează"}
+                                                {saving ? "Saving..." : "Save"}
                                             </button>
                                             <button
                                                 onClick={() => {
@@ -107,7 +105,7 @@ export default function PatientProfile() {
                                                 disabled={saving}
                                                 className="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-all duration-200"
                                             >
-                                                Anulează
+                                                Cancel
                                             </button>
                                         </div>
                                     </div>
