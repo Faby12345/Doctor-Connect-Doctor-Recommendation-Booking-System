@@ -1,87 +1,80 @@
-# doctor-connect
-A full-stack doctor recommendation & appointment booking system built with Spring Boot, React, TypeScript, PostgreSQL, and Tailwind CSS.
+ DoctorConnect
+A secure, full-stack healthcare appointment scheduling platform engineered for performance, data integrity, and strict access control.
 
-Overview
+DoctorConnect bridges the gap between patients and healthcare providers. It features a decoupled architecture with a Java/Spring Boot backend and a strictly-typed React/TypeScript frontend, powered by PostgreSQL.
 
-Doctor Connect is a medical marketplace where patients can search for doctors, explore profiles, check availability, and book appointments. Doctors can edit profiles, manage availability, and handle bookings. Admins can verify doctors.
+ Architectural Highlights
+This project was built with an enterprise mindset, focusing heavily on backend optimization and security:
 
-The project is intentionally designed as a clean monolith for learning modern full-stack development using:
+Zero-Trust Security: Implemented stateless authentication using JWTs and custom Spring Security filters. Role-Based Access Control (RBAC) securely separates PATIENT, DOCTOR, and ADMIN workflows.
 
- Spring Boot (REST API, JPA, security, validation)
+Strict API Contracts: Utilized the DTO (Data Transfer Object) pattern with custom mappers. Database entities are strictly protected and never leaked to the client, preventing Insecure Direct Object Reference (IDOR) vulnerabilities.
 
- React + TypeScript + Tailwind (UI, routing, forms, API hooks)
+Database Optimization: Actively squashed N+1 query bottlenecks using optimized JPA fetch strategies when loading complex entity relationships (like Doctors, Reviews, and Appointments).
 
- PostgreSQL + Flyway (database + migrations)
+ACID Compliance & Concurrency: Leveraged Spring's @Transactional proxies to manage complex booking workflows. State transitions (Accepting/Rejecting appointments) are strictly isolated to prevent race conditions and double-booking.
 
- Features
- 
-1. Patient Features
+Clean Frontend Architecture: Abstracted API logic and state management into custom React hooks, completely separating business logic from Tailwind CSS presentation components.
 
-Search doctors by specialty, city, price, availability
-
-View doctor profiles (bio, services, pricing, ratings)
-
-Book appointment slots
-
-View upcoming appointments
-
-Leave reviews after completed visits
-
-
-2. Doctor Features
-
-Create & update profile
-
-Define prices & specialty
-
-Add/remove available appointment slots
-
-View & manage appointments (confirm/cancel)
-
-
-3. Admin Features
-
-Verify doctors to improve patient trust
-
-
-
-Recommendation Engine (Simple Scoring)
-
-Doctors are ranked based on:
-
-Specialty match
-
-City match
-
-Verified status
-
-Price match vs patient filters
-
-Has an open slot within 7 days
-
-Rating bonus (rating_avg / 5)
-
-
-
-Tech Stack
-
-1. Backend:
+ Tech Stack
+Backend:
 
 Java 21
-Spring Boot 3 (Web, Security, Data JPA, Validation)
+
+Spring Boot 3 (Web, Data JPA, Security)
+
 PostgreSQL
-Flyway (schema migrations)
 
+JSON Web Tokens (JWT)
 
-2. Frontend
+Frontend:
 
-React 18 + TypeScript
+React 18 & TypeScript
+
 Vite
-React Router
-React Query
-React Hook Form + Zod
+
 Tailwind CSS
-Developer Tools
-Docker (optional for PostgreSQL)
-Testcontainers / JUnit
-ESLint + Prettier
+
+React Router
+
+Infrastructure:
+
+Docker & Docker Compose (Backend & Database)
+
+ Getting Started (Local Development)
+Currently, the Database and Backend API are containerized via Docker for seamless setup, while the Frontend is run locally for rapid UI development.
+
+Prerequisites
+Docker Desktop installed and running.
+
+Node.js (v18+) installed.
+
+1. Clone the Repository
+Bash
+git clone https://github.com/YourUsername/Doctor_Connect.git
+cd Doctor_Connect
+2. Start the Backend & Database (Docker)
+The docker-compose.yml file is configured to spin up the PostgreSQL database and the Spring Boot API. (Note: Frontend containerization is currently commented out for local dev flexibility).
+
+Bash
+# Run this from the root directory
+docker-compose up -d
+The API will be available at http://localhost:8080.
+
+3. Start the Frontend (Local)
+Open a new terminal window and navigate to the frontend directory:
+
+Bash
+cd frontend
+npm install
+npm run dev
+The React application will be available at http://localhost:5173 (or the port specified by Vite).
+
+ Author
+Fabian Turle
+
+LinkedIn: www.linkedin.com/in/turle-fabian-a74aa3310
+
+Role: Full-Stack Software Engineer
+
+If you are an Engineering Manager or Recruiter, feel free to reach out on LinkedIn! I am actively open to discussing system architecture, FinTech, and AI-driven development.
