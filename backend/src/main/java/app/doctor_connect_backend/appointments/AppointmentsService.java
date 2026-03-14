@@ -128,7 +128,7 @@ public class AppointmentsService {
         Appointments app = appointmentsRepo.findById(AppointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        verifyDataOwnership(callerId, app.getPatientId());
+        verifyDataOwnership(callerId, app.getPatientId(), app.getDoctorId());
 
         app.setStatus(AppointmentsStatus.CONFIRMED.toString());
         appointmentsRepo.save(app);
@@ -146,7 +146,7 @@ public class AppointmentsService {
         Appointments app = appointmentsRepo.findById(AppointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found"));
 
-        verifyDataOwnership(callerId, app.getPatientId());
+        verifyDataOwnership(callerId, app.getPatientId(), app.getDoctorId());
 
         app.setStatus(AppointmentsStatus.COMPLETED.toString());
         appointmentsRepo.save(app);
