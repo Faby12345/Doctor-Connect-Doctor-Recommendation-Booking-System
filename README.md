@@ -73,7 +73,7 @@ The React application will be available at http://localhost:5173 (or the port sp
  Author
 Fabian Turle
 
-LinkedIn: [Your LinkedIn URL]
+LinkedIn: www.linkedin.com/in/turle-fabian-a74aa3310
 
 Role: Full-Stack Software Engineer
 
